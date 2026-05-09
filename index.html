@@ -526,25 +526,67 @@ async function fetchAll() {
             saveAll(); renderList();
         }
     }
-
-    function exportToExcel(fileName) { 
-    let csv = "sep=,\nExchange,Koin,Amount,Staking,Harga USD,Total USD\n"; 
-    allExchanges.forEach(ex => { 
-        watchlist.forEach(s => { 
-            if(coinSources[s]?.includes(ex)) { 
-                const d = balances[s]?.[ex]; 
-                let am = (typeof d === 'object') ? (parseFloat(d.amount||0)) : parseFloat(d||0); 
-                let st = (typeof d === 'object') ? (parseFloat(d.staking||0)) : 0; 
-                if(am+st > 0) csv += `${ex},${s},${am},${st},${prices[s]||0},${((am+st)*(prices[s]||0)).toFixed(2)}\n`; 
-            } 
+function exportToExcel(fileName) { 
+        let csv = "sep=,\nExchange,Koin,Amount,Staking,Harga USD,Total USD\n"; 
+        allExchanges.forEach(ex => { 
+            watchlist.forEach(s => { 
+                if(coinSources[s]?.includes(ex)) { 
+                    const d = balances[s]?.[ex]; 
+                    let am = (typeof d === 'object') ? (parseFloat(d.amount||0)) : parseFloat(d||0); 
+                    let st = (typeof d === 'object') ? (parseFloat(d.staking||0)) : 0; 
+                    if(am+st > 0) csv += `${ex},${s},${am},${st},${prices[s]||0},${((am+st)*(prices[s]||0)).toFixed(2)}\n`; 
+                } 
+            }); 
         }); 
-    }); 
-    const a = document.createElement('a'); 
-    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); 
-    a.download = `${fileName.toUpperCase().trim()}.csv`; 
-    a.click(); 
-    showToast("Excel Berhasil Disimpan!");
-}
+        const a = document.createElement('a'); 
+        a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); 
+        a.download = `${fileName.toUpperCase().trim()}.csv`; 
+        a.click(); 
+        showToast("Excel Berhasil Disimpan!");
+    }
+
+    // --- CLOUD SYNC LOGIC (SINKRON SPREADSHEET) ---
+    const cloudURL = "https://script.google.com/macros/s/AKfycbykRvClspX-tQiHvZJ13Kcc_87EeuK9nz-NsZiPdcTLmY26Lkdd3CZGJkVOBVGqy5X3fA/exec";
+
+    async function syncToCloud() {
+        const dataAset = {
+            exchanges: allExchanges,
+            watchlist: watchlist,
+            balances: balances,
+            sources: coinSources
+        };
+        
+        showToast("Sedang Sinkron...");
+        try {
+            await fetch(cloudURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(dataAset)
+            });
+            showToast("Cloud Sync Berhasil!");
+        } catch(e) {
+            showToast("Gagal Sinkron ke Cloud");
+        }
+    }
+
+    async function pullFromCloud() {
+        showToast("Menarik Data...");
+        try {
+            const res = await fetch(cloudURL);
+            const data = await res.json();
+            if(data) {
+                allExchanges = data.exchanges || [];
+                watchlist = data.watchlist || [];
+                balances = data.balances || {};
+                coinSources = data.sources || {};
+                saveAll(); // Simpan ke localStorage lokal
+                location.reload(); // Refresh buat update tampilan
+            }
+        } catch(e) {
+            showToast("Gagal Ambil Data Cloud");
+        }
+    }
+
     function startHold(event, id, type) {
         const touch = event.touches ? event.touches[0] : event;
         startX = touch.clientX; startY = touch.clientY;
@@ -553,9 +595,3 @@ async function fetchAll() {
             else confirmModal(`HAPUS ${id}?`, 'delete', () => { watchlist = watchlist.filter(s => s !== id); delete balances[id]; delete coinSources[id]; saveAll(); renderList(); }, () => renamePopup(id, 'coin'));
         }, 700);
     }
-    function moveHold(event) { if (!holdTimer) return; const touch = event.touches ? event.touches[0] : event; if (Math.abs(touch.clientX - startX) > 15 || Math.abs(touch.clientY - startY) > 15) clearHold(); }
-    function clearHold() { clearTimeout(holdTimer); holdTimer = null; }
-
-</script>
-</body>
-</html>
