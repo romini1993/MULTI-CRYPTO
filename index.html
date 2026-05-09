@@ -338,24 +338,63 @@
         }
         balances = newBalances; if(needsSave) saveAll();
     }
+// --- CLOUD SYNC CONFIG ---
+// Link Apps Script elu yang udah aktif
+const cloudURL = "https://script.google.com/macros/s/AKfycbykRvClspX-tQiHvZJ13Kcc_87EeuK9nz-NsZiPdcTLmY26Lkdd3CZGJkVOBVGqy5X3fA/exec";
 
-    // --- CORE LOGIC ---
-    function switchTab(tab) { currentTab = tab; document.getElementById('tab-ex').classList.toggle('active', tab === 'exchange'); document.getElementById('tab-coin').classList.toggle('active', tab === 'coin'); renderList(); }
-    function updateSettings() { localStorage.setItem('last_sort', document.getElementById('sort-order').value); localStorage.setItem('last_cur', document.getElementById('currency-view').value); renderList(); }
+// Fungsi buat ngirim data ke Brankas (Spreadsheet)
+async function syncToCloud() {
+    const dataAset = JSON.parse(localStorage.getItem('user_assets')) || [];
+    if(dataAset.length === 0) return alert("Ga ada data buat di-sync, Bro!");
 
-    async function fetchKurs() { try { const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTIDR'); const d = await r.json(); if(d.price) { usdToIdr = parseFloat(d.price); document.getElementById('kurs-live').innerText = `USD/IDR: ${Math.round(usdToIdr).toLocaleString('id-ID')}`; updatePricesOnly(); } } catch(e) {} }
-    async function fetchCoinMap() { try { const r = await fetch('https://api.coingecko.com/api/v3/coins/list'); (await r.json()).forEach(c => { coinMapCG[c.symbol.toUpperCase()] = c.id; }); } catch(e) {} }
-
-    async function fetchAll() {
-        if(isFetching) return; isFetching = true;
-        let rem = watchlist.filter(s => !['IDR','USDT','USDC','USD','BUSD'].includes(s));
-        try { const res = await fetch('https://api.bybit.com/v5/market/tickers?category=spot'); const data = await res.json(); if(data.result?.list) { data.result.list.forEach(item => { let sym = item.symbol.replace('USDT',''); if(rem.includes(sym)) { prices[sym] = parseFloat(item.lastPrice); changes[sym] = (parseFloat(item.price24hPcnt) * 100).toFixed(2); rem = rem.filter(c => c !== sym); } }); } } catch(e) {}
-        if(rem.length > 0) { try { const res = await fetch('https://api.binance.com/api/v3/ticker/24hr'); const data = await res.json(); data.forEach(item => { let sym = item.symbol.replace('USDT',''); if(rem.includes(sym)) { prices[sym] = parseFloat(item.lastPrice); changes[sym] = parseFloat(item.priceChangePercent).toFixed(2); rem = rem.filter(c => c !== sym); } }); } catch(e) {} }
-        for (const s of rem) { if (coinMapCG[s]) { try { const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinMapCG[s]}&vs_currencies=usd&include_24hr_change=true`); const d = await r.json(); if(d[coinMapCG[s]]) { prices[s] = d[coinMapCG[s]].usd; changes[s] = d[coinMapCG[s]].usd_24h_change ? d[coinMapCG[s]].usd_24h_change.toFixed(2) : "0.00"; } } catch(e) {} } }
-        watchlist.forEach(s => { if(s === 'IDR') { prices[s] = 1/usdToIdr; changes[s] = "0.00"; } else if(['USDT','USDC','USD','BUSD'].includes(s)) { prices[s] = 1; changes[s] = "0.00"; } else if(!prices[s]) { prices[s] = 0; changes[s] = "0.00"; } });
-        updatePricesOnly(); isFetching = false;
+    try {
+        // Pake method POST buat ngirim data JSON ke Spreadsheet
+        await fetch(cloudURL, {
+            method: 'POST',
+            mode: 'no-cors', // Penting biar ga kena blokir CORS browser
+            body: JSON.stringify(dataAset)
+        });
+        alert("Data udah dikirim ke Brankas Spreadsheet!");
+    } catch(e) {
+        alert("Gagal konek ke Cloud, cek internet elu.");
     }
+}
 
+// Fungsi buat narik data dari Brankas (kalo abis reset/pindah HP)
+async function pullFromCloud() {
+    try {
+        const res = await fetch(cloudURL);
+        const dataCloud = await res.json();
+        
+        if(dataCloud && dataCloud.length > 0) {
+            // Timpa localStorage pake data dari Spreadsheet
+            localStorage.setItem('user_assets', JSON.stringify(dataCloud));
+            alert("Data ditarik! Web bakal refresh.");
+            location.reload(); 
+        } else {
+            alert("Cloud kosong, Bro!");
+        }
+    } catch(e) {
+        alert("Gagal narik data dari Brankas.");
+    }
+}
+
+// --- CORE LOGIC (BAWAAN ELU) ---
+function switchTab(tab) { currentTab = tab; document.getElementById('tab-ex').classList.toggle('active', tab === 'exchange'); document.getElementById('tab-coin').classList.toggle('active', tab === 'coin'); renderList(); }
+function updateSettings() { localStorage.setItem('last_sort', document.getElementById('sort-order').value); localStorage.setItem('last_cur', document.getElementById('currency-view').value); renderList(); }
+
+async function fetchKurs() { try { const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTIDR'); const d = await r.json(); if(d.price) { usdToIdr = parseFloat(d.price); document.getElementById('kurs-live').innerText = `USD/IDR: ${Math.round(usdToIdr).toLocaleString('id-ID')}`; updatePricesOnly(); } } catch(e) {} }
+async function fetchCoinMap() { try { const r = await fetch('https://api.coingecko.com/api/v3/coins/list'); (await r.json()).forEach(c => { coinMapCG[c.symbol.toUpperCase()] = c.id; }); } catch(e) {} }
+
+async function fetchAll() {
+    if(isFetching) return; isFetching = true;
+    let rem = watchlist.filter(s => !['IDR','USDT','USDC','USD','BUSD'].includes(s));
+    try { const res = await fetch('https://api.bybit.com/v5/market/tickers?category=spot'); const data = await res.json(); if(data.result?.list) { data.result.list.forEach(item => { let sym = item.symbol.replace('USDT',''); if(rem.includes(sym)) { prices[sym] = parseFloat(item.lastPrice); changes[sym] = (parseFloat(item.price24hPcnt) * 100).toFixed(2); rem = rem.filter(c => c !== sym); } }); } } catch(e) {}
+    if(rem.length > 0) { try { const res = await fetch('https://api.binance.com/api/v3/ticker/24hr'); const data = await res.json(); data.forEach(item => { let sym = item.symbol.replace('USDT',''); if(rem.includes(sym)) { prices[sym] = parseFloat(item.lastPrice); changes[sym] = parseFloat(item.priceChangePercent).toFixed(2); rem = rem.filter(c => c !== sym); } }); } catch(e) {} }
+    for (const s of rem) { if (coinMapCG[s]) { try { const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinMapCG[s]}&vs_currencies=usd&include_24hr_change=true`); const d = await r.json(); if(d[coinMapCG[s]]) { prices[s] = d[coinMapCG[s]].usd; changes[s] = d[coinMapCG[s]].usd_24h_change ? d[coinMapCG[s]].usd_24h_change.toFixed(2) : "0.00"; } } catch(e) {} } }
+    watchlist.forEach(s => { if(s === 'IDR') { prices[s] = 1/usdToIdr; changes[s] = "0.00"; } else if(['USDT','USDC','USD','BUSD'].includes(s)) { prices[s] = 1; changes[s] = "0.00"; } else if(!prices[s]) { prices[s] = 0; changes[s] = "0.00"; } });
+    updatePricesOnly(); isFetching = false;
+}
     function getCoinTotal(sym) { let t = 0; (coinSources[sym] || []).forEach(src => { const d = balances[sym]?.[src]; t += (typeof d === 'object') ? (parseFloat(d.amount||0) + parseFloat(d.staking||0)) : parseFloat(d||0); }); return t; }
 
     function updatePricesOnly() {
