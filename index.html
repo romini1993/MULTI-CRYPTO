@@ -1,597 +1,1037 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#0f172a">
-    <link rel="manifest" href="manifest.json">
-    <title>PORTO</title>
-    <style>
-        :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --text: #f8fafc; --subtext: #94a3b8; --up: #4ade80; --down: #f87171; --gray-btn: #334155; --red-muted: #991b1b; }
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        html, body { background: var(--bg); color: var(--text); margin: 0; padding: 0; min-height: 100%; }
-        .container { width: 100%; max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; position: relative; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#080d14">
+<link rel="manifest" href="manifest.json">
+<title>PORTO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080d14;
+  --bg2: #0d1520;
+  --card: #111923;
+  --card2: #16202e;
+  --border: #1e2d3d;
+  --accent: #00d4ff;
+  --accent2: #0099cc;
+  --accent-glow: rgba(0,212,255,0.15);
+  --text: #e8f4f8;
+  --subtext: #5a7a8c;
+  --subtext2: #3d5a6a;
+  --up: #00e5a0;
+  --down: #ff4d6a;
+  --up-bg: rgba(0,229,160,0.08);
+  --down-bg: rgba(255,77,106,0.08);
+  --mono: 'Space Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+}
 
-        .top-flow { padding: 15px 15px 5px 15px; background: var(--bg); }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .brand { font-size: 18px; font-weight: bold; color: var(--accent); }
-        .kurs-info { font-size: 9px; color: var(--subtext); background: rgba(255,255,255,0.05); padding: 3px 6px; border-radius: 8px; border: 1px solid #334155; }
-        
-        .sticky-header { position: sticky; top: 0; z-index: 100; background: var(--bg); padding: 5px 15px 10px 15px; }
-        .summary-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--accent); text-align: center; }
-        .summary-idr { font-size: 20px; font-weight: 800; display: block; }
-        #total-all-usd { color: var(--subtext); font-size: 12px; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* Disable scroll on number inputs */
+input[type=number] { -moz-appearance: textfield; }
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-        .tab-container { display: flex; gap: 8px; margin-bottom: 10px; background: rgba(255,255,255,0.05); padding: 4px; border-radius: 10px; border: 1px solid #334155; }
-        .tab-btn { flex: 1; padding: 8px; border-radius: 6px; border: none; background: transparent; color: var(--subtext); cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.3s; }
-        .tab-btn.active { background: var(--accent); color: #0f172a; }
-        
-        .filter-input { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid #334155; border-radius: 10px; padding: 10px 12px; color: white; outline: none; font-size: 13px; margin-bottom: 8px; }
-        
-        .control-row { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 5px; }
-        .control-select { background: var(--card); color: white; border: 1px solid #334155; border-radius: 6px; font-size: 10px; padding: 6px; outline: none; cursor: pointer; flex: 1; }
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  margin: 0; padding: 0;
+  font-family: var(--sans);
+  min-height: 100%;
+  overflow-x: hidden;
+}
 
-        #main-list { padding: 5px 10px 20px 10px; min-height: 60vh; }
+/* ---- LAYOUT ---- */
+.app-shell {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .modal-content { width: 100%; max-width: 340px; background: var(--card); border: 1px solid var(--accent); border-radius: 15px; padding: 20px; transform: scale(0.9); transition: transform 0.2s; }
-        .modal-overlay.active { display: flex; }
-        .modal-overlay.active .modal-content { transform: scale(1); }
-        
-        @media screen and (max-height: 550px) { .modal-content { transform: translateY(-20%) scale(1) !important; } }
+@media (min-width: 768px) {
+  .app-shell { max-width: 680px; }
+}
 
-        .modal-title { font-weight: bold; font-size: 14px; text-align: center; margin-bottom: 15px; color: var(--text); text-transform: uppercase; }
-        .modal-input { width: 100%; background: #000; border: 1px solid var(--accent); color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 15px; outline: none; font-size: 14px; text-align: center; }
-        .modal-btns { display: flex; gap: 8px; justify-content: center; }
-        .modal-btn { flex: 1; padding: 12px 5px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 11px; text-transform: uppercase; }
-        
-        .btn-delete { background: var(--red-muted); color: white; }
-        .btn-edit { background: var(--gray-btn); color: var(--accent); }
-        .btn-ok { background: var(--accent); color: #0f172a; }
-        .btn-cancel { background: var(--gray-btn); color: white; }
+/* ---- HEADER ---- */
+.top-bar {
+  padding: 16px 18px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg);
+}
 
-        .bottom-nav-container { position: sticky; bottom: 0; width: 100%; z-index: 1000; background: var(--bg); display: flex; flex-direction: column; }
-        #add-bar-fixed { background: var(--bg); padding: 10px 15px; border-top: 1px solid #334155; z-index: 1002; }
-        #backup-scroll-area { background: var(--bg); padding: 0 15px 20px 15px; transition: all 0.3s ease; max-height: 250px; overflow: hidden; opacity: 1; }
-        .hide-backup { max-height: 0 !important; padding-bottom: 0 !important; opacity: 0; transform: translateY(20px); }
+.brand {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(0,212,255,0.4);
+  position: relative;
+}
+.brand::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0;
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
 
-        .search-box { display: flex; gap: 6px; }
-        .search-box input { flex: 1; background: var(--card); border: 1px solid #334155; color: white; padding: 10px; border-radius: 8px; outline: none; font-size: 13px; }
-        .add-btn { background: var(--accent); border: none; padding: 0 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; color: #0f172a; }
+.kurs-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--subtext);
+  background: var(--card);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  letter-spacing: 0.5px;
+}
 
-        .backup-section { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .backup-btn { flex: 1 1 calc(50% - 3px); background: transparent; border: 1px solid #334155; color: var(--subtext); padding: 8px; border-radius: 6px; font-size: 11px; cursor: pointer; text-align: center; }
-        .import-btn-full { flex: 1 1 100% !important; border: 1px solid var(--accent) !important; color: var(--accent) !important; }
+/* ---- STICKY ZONE ---- */
+.sticky-zone {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  padding: 0 18px 10px;
+}
 
-        .coin-row { position: relative; margin-bottom: 8px; }
-        .coin-card { background: var(--card); border-radius: 10px; padding: 10px; display: flex; align-items: center; gap: 10px; border: 1px solid #334155; cursor: pointer; user-select: none; -webkit-user-select: none; }
-        .logo-wrapper { width: 32px; height: 32px; border-radius: 50%; overflow: hidden; border: 1px solid #475569; flex-shrink: 0; background: #000; display: flex; align-items: center; justify-content: center; }
-        .logo-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-        .logo-initial { width: 100%; height: 100%; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; text-transform: uppercase; border: 1px solid #475569; border-radius: 50%; }
-        .info-group { flex: 1; min-width: 0; }
-        .symbol { font-size: 14px; font-weight: bold; text-transform: uppercase; }
-        .change-pct { font-size: 9px; font-weight: bold; margin-left: 4px; }
-        .up { color: var(--up); }
-        .down { color: var(--down); }
-        
-        .details { background: #161e2e; margin: -8px 4px 8px 4px; padding: 10px; border-radius: 0 0 10px 10px; border: 1px solid #334155; display: none; }
-        .source-row { display: flex; align-items: center; margin-bottom: 6px; gap: 6px; }
-        .source-label { font-size: 13px; font-weight: bold; color: var(--text); min-width: 70px; flex-shrink: 0; display: flex; align-items: center; gap: 6px; text-transform: uppercase; }
-        
-        .input-wrapper { display: flex; gap: 6px; flex: 0 0 225px; justify-content: flex-end; margin-left: auto; } 
-        .source-input { flex: 1; width: 100%; background: #000; border: 1px solid #475569; color: #fff; border-radius: 5px; padding: 7px 8px; font-size: 13px; outline: none; }
-        .del-src { color: white; font-size: 18px; cursor: pointer; margin-left: 6px; opacity: 0.7; }
+/* ---- SUMMARY CARD ---- */
+.summary-card {
+  background: linear-gradient(135deg, #0d1a26 0%, #091420 50%, #0a1825 100%);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.summary-card::before {
+  content: '';
+  position: absolute;
+  top: -40px; left: 50%; transform: translateX(-50%);
+  width: 200px; height: 80px;
+  background: radial-gradient(ellipse, rgba(0,212,255,0.12), transparent 70%);
+  pointer-events: none;
+}
+.summary-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--accent);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 6px;
+}
+.summary-idr {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  display: block;
+  line-height: 1.1;
+}
+.summary-usd {
+  font-size: 12px;
+  color: var(--subtext);
+  margin-top: 3px;
+  display: block;
+  font-family: var(--mono);
+}
 
-        .new-source-box { display: flex; gap: 5px; margin-top: 8px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); }
-        .new-source-input { flex: 1; background: #000; border: 1px solid #475569; color: #fff; border-radius: 5px; padding: 7px 8px; font-size: 11px; outline: none; }
-        .new-source-btn { background: #334155; color: var(--accent); border: none; border-radius: 5px; padding: 0 12px; font-weight: bold; cursor: pointer; font-size: 13px; }
+/* ---- TABS ---- */
+.tab-row {
+  display: flex;
+  gap: 6px;
+  background: var(--card);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--subtext);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transition: all 0.25s ease;
+}
+.tab-btn.active {
+  background: var(--accent);
+  color: #000;
+  box-shadow: 0 0 12px rgba(0,212,255,0.3);
+}
 
-        #toast-msg { visibility: hidden; min-width: 180px; background-color: #f87171; color: #fff; text-align: center; border-radius: 8px; padding: 8px; position: fixed; z-index: 3000; bottom: 100px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: bold; }
-        #toast-msg.show { visibility: visible; }
-    </style>
+/* ---- CONTROLS ---- */
+.filter-input {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--text);
+  outline: none;
+  font-size: 13px;
+  font-family: var(--sans);
+  margin-bottom: 8px;
+  transition: border-color 0.2s;
+}
+.filter-input:focus { border-color: var(--accent2); }
+.filter-input::placeholder { color: var(--subtext2); }
+
+.control-row { display: flex; gap: 6px; margin-bottom: 4px; }
+.control-select {
+  background: var(--card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 10px;
+  padding: 7px 8px;
+  outline: none;
+  cursor: pointer;
+  flex: 1;
+  font-family: var(--sans);
+}
+
+/* ---- MAIN LIST ---- */
+#main-list {
+  padding: 6px 18px 120px;
+  flex: 1;
+}
+
+/* ---- COIN ROW / CARD ---- */
+.coin-row { margin-bottom: 6px; }
+
+.coin-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+}
+.coin-card:active { background: var(--card2); }
+.coin-card.expanded { border-radius: 12px 12px 0 0; border-color: var(--accent2); }
+
+.logo-wrap {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--bg2);
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.logo-init {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 10px; font-weight: 700;
+  color: var(--accent);
+}
+
+.info-grp { flex: 1; min-width: 0; }
+.sym {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+.sym-sub {
+  font-size: 10px;
+  color: var(--subtext);
+  font-weight: 400;
+  margin-left: 4px;
+}
+.change-pct {
+  font-family: var(--mono);
+  font-size: 9px; font-weight: 700;
+  margin-left: 4px;
+}
+.price-line {
+  font-size: 10px;
+  color: var(--subtext);
+  margin-top: 1px;
+  font-family: var(--mono);
+}
+.up { color: var(--up); }
+.down { color: var(--down); }
+
+.val-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+.val-main {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+}
+.val-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--subtext);
+  margin-top: 1px;
+}
+
+/* Expand chevron */
+.chevron {
+  width: 16px; height: 16px;
+  margin-left: 6px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+  color: var(--subtext2);
+}
+.coin-card.expanded .chevron { transform: rotate(180deg); }
+
+/* ---- DETAILS PANEL (smooth) ---- */
+.det-wrapper {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.3s ease;
+  opacity: 0;
+  background: #0c1620;
+  border: 1px solid var(--accent2);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+}
+.det-wrapper.open {
+  max-height: 600px;
+  opacity: 1;
+}
+.det-inner { padding: 10px 12px 12px; }
+
+/* Source row inside detail */
+.src-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.src-row:last-of-type { border-bottom: none; margin-bottom: 4px; }
+
+.src-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+.src-logo { width: 18px; height: 18px; border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+.src-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+.src-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.src-input-row { display: flex; gap: 4px; align-items: center; }
+
+.src-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: var(--mono);
+  outline: none;
+  transition: border-color 0.2s;
+  min-width: 0;
+}
+.src-input:focus { border-color: var(--accent2); }
+.src-input::placeholder { color: var(--subtext2); font-size: 10px; }
+
+/* Estimate value next to input */
+.est-val {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--subtext);
+  text-align: right;
+  min-width: 60px;
+  flex-shrink: 0;
+  line-height: 1.3;
+}
+.est-usd { color: var(--subtext); }
+
+.del-btn {
+  color: var(--down);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.del-btn:hover { opacity: 1; }
+
+.new-src-box {
+  display: flex;
+  gap: 5px;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.new-src-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 7px 8px;
+  font-size: 11px;
+  font-family: var(--mono);
+  outline: none;
+}
+.new-src-input:focus { border-color: var(--accent2); }
+.new-src-input::placeholder { color: var(--subtext2); }
+.new-src-btn {
+  background: var(--border);
+  color: var(--accent);
+  border: none;
+  border-radius: 6px;
+  padding: 0 14px;
+  font-family: var(--mono);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+.new-src-btn:hover { background: var(--card2); }
+
+/* ---- BOTTOM NAV ---- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 520px;
+  z-index: 200;
+  background: linear-gradient(to top, var(--bg) 85%, transparent);
+  padding: 8px 18px 16px;
+}
+@media (min-width: 768px) {
+  .bottom-nav { max-width: 680px; }
+}
+
+.add-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.add-input {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 10px;
+  outline: none;
+  font-size: 13px;
+  font-family: var(--sans);
+  transition: border-color 0.2s;
+}
+.add-input:focus { border-color: var(--accent2); }
+.add-input::placeholder { color: var(--subtext2); }
+.add-btn {
+  background: var(--accent);
+  border: none;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-family: var(--mono);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 11px;
+  color: #000;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 12px rgba(0,212,255,0.25);
+  transition: box-shadow 0.2s;
+}
+.add-btn:active { box-shadow: 0 0 6px rgba(0,212,255,0.1); }
+
+.action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 4px;
+}
+.action-btn {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--subtext);
+  padding: 7px 4px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-family: var(--mono);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.action-btn:hover { border-color: var(--accent2); color: var(--accent); }
+.action-btn.import-full {
+  grid-column: span 4;
+  border-color: var(--accent2);
+  color: var(--accent);
+}
+
+/* ---- MODAL ---- */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.active { display: flex; }
+
+.modal-box {
+  width: 100%; max-width: 320px;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 20px;
+  animation: popIn 0.2s ease;
+}
+@keyframes popIn {
+  from { transform: scale(0.92); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+.modal-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  outline: none;
+  font-family: var(--mono);
+  font-size: 13px;
+  text-align: center;
+}
+.modal-input:focus { border-color: var(--accent2); }
+.modal-btns { display: flex; gap: 8px; }
+.mbtn {
+  flex: 1; padding: 11px 6px;
+  border: none; border-radius: 8px;
+  font-family: var(--mono);
+  font-weight: 700; font-size: 10px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.mbtn:active { opacity: 0.75; }
+.mbtn-ok { background: var(--accent); color: #000; }
+.mbtn-del { background: rgba(255,77,106,0.15); color: var(--down); border: 1px solid var(--down); }
+.mbtn-edit { background: var(--card); color: var(--accent); border: 1px solid var(--border); }
+.mbtn-cancel { background: var(--card); color: var(--subtext); border: 1px solid var(--border); }
+
+/* ---- TOAST ---- */
+#toast {
+  visibility: hidden;
+  position: fixed;
+  bottom: 120px; left: 50%; transform: translateX(-50%);
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 9px 18px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-family: var(--mono);
+  z-index: 3000;
+  white-space: nowrap;
+  transition: opacity 0.3s;
+  opacity: 0;
+}
+#toast.show { visibility: visible; opacity: 1; }
+
+/* ---- LANDSCAPE / DESKTOP ---- */
+@media (min-width: 600px) and (orientation: landscape), (min-width: 768px) {
+  .summary-idr { font-size: 30px; }
+}
+
+</style>
 </head>
 <body>
 
-<div id="custom-modal" class="modal-overlay" onclick="closeModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div id="modal-title" class="modal-title"></div>
-        <input type="text" id="modal-input-field" class="modal-input" style="display:none">
-        <div id="modal-body" class="modal-btns"></div>
-    </div>
+<div id="modal-overlay" class="modal-overlay" onclick="closeModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div id="modal-title" class="modal-title"></div>
+    <input type="text" id="modal-input" class="modal-input" style="display:none">
+    <div id="modal-btns" class="modal-btns"></div>
+  </div>
 </div>
 
-<div class="container">
-    <div class="top-flow">
-        <div class="header">
-            <div class="brand">PORTO</div>
-            <div id="kurs-live" class="kurs-info">USD/IDR: ...</div>
-        </div>
-    </div>
+<div class="app-shell">
+  <div class="top-bar">
+    <div class="brand">PORTO</div>
+    <div id="kurs-badge" class="kurs-badge">USD/IDR: ···</div>
+  </div>
 
-    <div class="sticky-header">
-        <div class="summary-card">
-            <span style="font-size: 9px; color: var(--accent); letter-spacing: 1px;">TOTAL SALDO</span>
-            <span id="total-all-idr" class="summary-idr">Rp 0</span>
-            <span id="total-all-usd">$0.00</span>
-        </div>
-        <div class="tab-container">
-            <button id="tab-ex" class="tab-btn active" onclick="switchTab('exchange')">Exchange</button>
-            <button id="tab-coin" class="tab-btn" onclick="switchTab('coin')">Coin</button>
-        </div>
-        <input type="text" id="filter-input" class="filter-input" placeholder="Cari..." oninput="renderList()">
-        <div class="control-row">
-    <select id="sort-order" class="control-select" onchange="updateSettings()">
+  <div class="sticky-zone">
+    <div class="summary-card">
+      <span class="summary-label">TOTAL SALDO</span>
+      <span id="total-idr" class="summary-idr">Rp 0</span>
+      <span id="total-usd" class="summary-usd">$0.00</span>
+    </div>
+    <div class="tab-row">
+      <button id="tab-ex" class="tab-btn active" onclick="switchTab('exchange')">EXCHANGE</button>
+      <button id="tab-coin" class="tab-btn" onclick="switchTab('coin')">COIN</button>
+    </div>
+    <input type="text" id="filter-input" class="filter-input" placeholder="Cari..." oninput="renderList()">
+    <div class="control-row">
+      <select id="sort-order" class="control-select" onchange="updateSettings()">
         <option value="manual">Urutan: Default</option>
         <option value="name">Urutan: A-Z</option>
         <option value="value">Urutan: Terbesar</option>
         <option value="gainers">Urutan: Gainers</option>
-    </select>
-    <select id="currency-view" class="control-select" onchange="updateSettings()">
+      </select>
+      <select id="currency-view" class="control-select" onchange="updateSettings()">
         <option value="IDR">Mata Uang: IDR</option>
         <option value="USD">Mata Uang: USD</option>
-    </select>
-</div>
+      </select>
     </div>
+  </div>
 
-    <div id="main-list"></div>
-
-    <div class="bottom-nav-container">
-        <div id="add-bar-fixed">
-            <div class="search-box">
-                <input type="text" id="global-add-input" placeholder="Tambah Baru..." onkeypress="if(event.key==='Enter') handleGlobalAdd()">
-                <button class="add-btn" onclick="handleGlobalAdd()">Tambah</button>
-            </div>
-        </div>
-        <div id="backup-scroll-area">
-            <div class="backup-section">
-                <button class="backup-btn" onclick="openBackupPopup()">📤 Backup</button>
-                <button class="backup-btn" onclick="confirmModal('RESTORE DATA?','ok',()=>openFilePicker('restore'))">🔄 Restore</button>
-                <button class="backup-btn" onclick="openExcelPopup()">📊 Excel</button>
-                <button class="backup-btn" onclick="confirmModal('RESET SEMUA DATA?','delete',()=>resetApp())" style="color:var(--down)">⚠️ Reset</button>
-                <button class="backup-btn import-btn-full" onclick="confirmModal('IMPORT DAN GABUNG?','ok',()=>openFilePicker('import'))">📥 Import</button>
-            </div>
-        </div>
-    </div>
+  <div id="main-list"></div>
 </div>
 
-<div id="toast-msg"></div>
+<!-- BOTTOM NAV (fixed) -->
+<div class="bottom-nav">
+  <div class="add-bar">
+    <input type="text" id="global-add-input" class="add-input" placeholder="Tambah Exchange / Coin..." onkeypress="if(event.key==='Enter') handleGlobalAdd()">
+    <button class="add-btn" onclick="handleGlobalAdd()">TAMBAH</button>
+  </div>
+  <div class="action-grid">
+    <button class="action-btn" onclick="openBackupPopup()">📤 Backup</button>
+    <button class="action-btn" onclick="confirmModal('RESTORE DATA?','ok',()=>openFilePicker('restore'))">🔄 Restore</button>
+    <button class="action-btn" onclick="openExcelPopup()">📊 Excel</button>
+    <button class="action-btn" onclick="confirmModal('RESET SEMUA DATA?','delete',()=>resetApp())" style="color:var(--down)">⚠️ Reset</button>
+    <button class="action-btn import-full" onclick="confirmModal('IMPORT DAN GABUNG?','ok',()=>openFilePicker('import'))">📥 Import & Gabung</button>
+  </div>
+</div>
+
+<div id="toast"></div>
 <input type="file" id="importFile" style="display:none" accept=".json" onchange="handleFileSelect(event)">
 
 <script>
-    // --- POPUP LOGIC ---
-    function closeModal() { 
-        document.getElementById('custom-modal').classList.remove('active'); 
-        document.getElementById('modal-input-field').style.display='none'; 
-    }
-    
-    function confirmModal(msg, type, onOk, onEdit = null) {
-        const modal = document.getElementById('custom-modal');
-        const title = document.getElementById('modal-title');
-        const body = document.getElementById('modal-body');
-        title.innerText = msg;
-        
-        let btns = "";
-        if (type === 'delete') {
-            btns = `<button class="modal-btn btn-delete" id="btn-modal-ok">HAPUS</button>`;
-            if (onEdit) btns += `<button class="modal-btn btn-edit" id="btn-modal-edit">EDIT</button>`;
-            btns += `<button class="modal-btn btn-cancel" onclick="closeModal()">BATAL</button>`;
-        } else {
-            btns = `<button class="modal-btn btn-ok" id="btn-modal-ok">OKE</button>`;
-            btns += `<button class="modal-btn btn-cancel" onclick="closeModal()">BATAL</button>`;
-        }
-        
-        body.innerHTML = btns;
-        document.getElementById('btn-modal-ok').onclick = () => { closeModal(); onOk(); };
-        if (onEdit) document.getElementById('btn-modal-edit').onclick = () => { closeModal(); onEdit(); };
-        modal.classList.add('active');
-    }
+// ---- STATE ----
+let usdToIdr = 16000;
+let prices = {}, changes = {}, coinMapCG = {};
+let currentTab = 'exchange', isFetching = false;
+let watchlist = JSON.parse(localStorage.getItem('my_assets_v2') || '[]');
+let balances = JSON.parse(localStorage.getItem('my_balances_v2') || '{}');
+let coinSources = JSON.parse(localStorage.getItem('my_coin_sources') || '{}');
+let allExchanges = JSON.parse(localStorage.getItem('my_exchanges_v2') || '[]');
+let expandedItem = null, currentMode = 'restore';
+let holdTimer, startX, startY;
 
-    function openBackupPopup() {
-        const now = new Date();
-        const ts = `PORTO_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`;
-        const modal = document.getElementById('custom-modal');
-        const input = document.getElementById('modal-input-field');
-        document.getElementById('modal-title').innerText = "SIMPAN BACKUP";
-        input.style.display = 'block'; 
-        input.value = ts;
-        document.getElementById('modal-body').innerHTML = `<button class="modal-btn btn-ok" id="btn-backup-ok">OKE</button><button class="modal-btn btn-cancel" onclick="closeModal()">BATAL</button>`;
-        document.getElementById('btn-backup-ok').onclick = () => { exportData(input.value); closeModal(); };
-        modal.classList.add('active');
-        
-        setTimeout(() => { 
-            input.focus();
-            let val = input.value;
-            input.value = '';
-            input.value = val;
-        }, 250);
-    }
+const exchangeLogos = {
+  "BINANCE":"https://assets.coingecko.com/markets/images/52/standard/binance.jpg?1706864274",
+  "BYBIT":"https://assets.coingecko.com/markets/images/698/standard/bybit_spot.png?1706864649",
+  "OKX":"https://res.cloudinary.com/dor7smqah/image/upload/v1774080981/unnamed_2_qebw5t.png",
+  "GATE":"https://s2.coinmarketcap.com/static/img/exchanges/64x64/302.png",
+  "TOKOCRYPTO":"https://www.gate.io/images/coin_icon/64/tko.png",
+  "INDODAX":"https://assets.coingecko.com/markets/images/3/large/logogram-Indodax-new-_JPG_format.jpg?1706864243",
+  "PINTU":"https://pintu.co.id/favicon.ico",
+  "MEXC":"https://res.cloudinary.com/dor7smqah/image/upload/v1774081648/images_1_ah20ou.png",
+  "KUCOIN":"https://res.cloudinary.com/dor7smqah/image/upload/v1774081889/kucoin-icon-filled-256_vhtce0.png",
+  "BITMART":"https://res.cloudinary.com/dor7smqah/image/upload/v1774081888/unnamed_4_c5x38a.png",
+  "BITGET":"https://assets.coingecko.com/markets/images/540/standard/2023-07-25_21.47.43.jpg?1706864507",
+  "COINBASE":"https://assets.coingecko.com/markets/images/23/standard/Coinbase_Coin_Primary.png?1706864258",
+  "UPBIT":"https://assets.coingecko.com/markets/images/117/standard/upbit.png?1706864294",
+  "RETRO":"https://res.cloudinary.com/dor7smqah/image/upload/v1774080693/wallet-glyph-black-icon-vector_v4lude.jpg",
+  "TABUNGAN":"https://res.cloudinary.com/dor7smqah/image/upload/v1774080466/images_e9yzms.png",
+  "EXCLAIM":"https://res.cloudinary.com/dor7smqah/image/upload/v1774081431/claimed-rubber-stamp-design-arts-600nw-2436629145_emhjcj.webp",
+  "IMTOKEN":"https://res.cloudinary.com/dor7smqah/image/upload/v1774081431/unnamed_3_whdxwy.png",
+  "SUI":"https://assets.coingecko.com/asset_platforms/images/126/standard/sui-ocean-square.png?1727791325",
+  "SOL":"https://assets.coingecko.com/asset_platforms/images/5/standard/solana.png?1706606708",
+  "TON":"https://assets.coingecko.com/asset_platforms/images/142/small/tonblockchain.jpeg?1706606805",
+  "KEPLR":"https://res.cloudinary.com/dor7smqah/image/upload/v1774079462/keplr-icon-radii_doymj6.png",
+  "HASHPACK":"https://res.cloudinary.com/dor7smqah/image/upload/v1774080164/unnamed_1_ofbzwh.png",
+  "ZERION":"https://res.cloudinary.com/dor7smqah/image/upload/v1774079795/zerion1665411612684_zhc63d.png",
+  "XAMAN":"https://res.cloudinary.com/dor7smqah/image/upload/v1774080246/6323b6992e21c7404dc6ed64_public_zb6a6y.png",
+  "WALLET":"https://assets.coincap.io/assets/icons/twt@2x.png"
+};
 
-    function renamePopup(oldVal, type) {
-        const modal = document.getElementById('custom-modal');
-        const input = document.getElementById('modal-input-field');
-        document.getElementById('modal-title').innerText = "RENAME " + oldVal;
-        input.style.display = 'block'; 
-        input.value = oldVal;
-        document.getElementById('modal-body').innerHTML = `<button class="modal-btn btn-ok" id="btn-rename-ok">SIMPAN</button><button class="modal-btn btn-cancel" onclick="closeModal()">BATAL</button>`;
-        document.getElementById('btn-rename-ok').onclick = () => { renameProcess(oldVal, input.value, type); closeModal(); };
-        modal.classList.add('active');
-        
-        setTimeout(() => { 
-            input.focus();
-            let val = input.value;
-            input.value = '';
-            input.value = val;
-        }, 250);
-    }
-    function openExcelPopup() {
-    const now = new Date();
-    const ts = `PORTO_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`;
-    const modal = document.getElementById('custom-modal');
-    const input = document.getElementById('modal-input-field');
-    document.getElementById('modal-title').innerText = "EXPORT KE EXCEL (.CSV)";
-    input.style.display = 'block'; 
-    input.value = ts;
-    document.getElementById('modal-body').innerHTML = `<button class="modal-btn btn-ok" id="btn-excel-ok">OKE</button><button class="modal-btn btn-cancel" onclick="closeModal()">BATAL</button>`;
-    document.getElementById('btn-excel-ok').onclick = () => { exportToExcel(input.value); closeModal(); };
-    modal.classList.add('active');
-    setTimeout(() => { input.focus(); }, 250);
+// ---- LOGO ----
+function handleLogoError(img, sym) {
+  if (sym === 'IDR') { img.parentElement.innerHTML = `<div class="logo-init" style="background:#004d20">RP</div>`; return; }
+  const retry = parseInt(img.getAttribute('data-retry') || "0");
+  const s = sym.toLowerCase();
+  const sources = [
+    `https://gate.io/images/coin_icon/64/${s}.png`,
+    `https://assets.coincap.io/assets/icons/${s}@2x.png`,
+    `https://static.okx.com/cdn/oksupport/asset/currency/icon/${s}.png`
+  ];
+  if (retry < sources.length) { img.setAttribute('data-retry', retry+1); img.src = sources[retry]; }
+  else { img.parentElement.innerHTML = `<div class="logo-init">${sym.substring(0,2)}</div>`; }
 }
 
-    // --- SCROLL LOGIC ---
-    let lastScrollY = window.scrollY;
-    window.addEventListener("scroll", () => {
-        const currentScrollY = window.scrollY;
-        const b = document.getElementById("backup-scroll-area");
-        const isAtBottom = (window.innerHeight + currentScrollY) >= (document.documentElement.scrollHeight - 50);
+// ---- DISABLE SCROLL ON INPUTS ----
+document.addEventListener('wheel', (e) => {
+  if (document.activeElement.type === 'number') e.preventDefault();
+}, { passive: false });
 
-        if (isAtBottom) b.classList.add("hide-backup");
-        else {
-            if (currentScrollY > lastScrollY && currentScrollY > 20) b.classList.add("hide-backup");
-            else if (currentScrollY < lastScrollY) b.classList.remove("hide-backup");
-        }
-        lastScrollY = currentScrollY;
-    }, { passive: true });
+// ---- INIT ----
+window.onload = () => {
+  migrateToUppercase();
+  document.getElementById('sort-order').value = localStorage.getItem('last_sort') || 'manual';
+  document.getElementById('currency-view').value = localStorage.getItem('last_cur') || 'IDR';
+  renderList();
+  fetchKurs();
+  fetchCoinMap();
+  fetchAll();
+  setInterval(fetchAll, 60000);
+};
 
-    // --- LOGO HIERARCHY (FITUR BARU) ---
-    function handleLogoError(img, sym) {
-        if (sym === 'IDR') {
-            img.parentElement.innerHTML = `<div class="logo-initial" style="background:#4ade80; color:#0f172a">RP</div>`;
-            return;
-        }
-        const retry = parseInt(img.getAttribute('data-retry') || "0");
-        const s = sym.toLowerCase();
-        const S = sym.toUpperCase();
-
-        // Urutan pintu sesuai request
-     const sources = [
-            `https://gate.io/images/coin_icon/64/${s}.png`,
-            `https://assets.coincap.io/assets/icons/${s}@2x.png`,
-            `https://static.okx.com/cdn/oksupport/asset/currency/icon/${s}.png`
-        ];
-        if (retry < sources.length) {
-            img.setAttribute('data-retry', retry + 1);
-            img.src = sources[retry];
-        } else {
-            img.parentElement.innerHTML = `<div class="logo-initial">${sym.substring(0, 2).toUpperCase()}</div>`;
-        }
+function migrateToUppercase() {
+  let ns = false;
+  watchlist = watchlist.map(s => { if(s !== s.toUpperCase()) ns=true; return s.toUpperCase(); });
+  allExchanges = allExchanges.map(ex => { if(ex !== ex.toUpperCase()) ns=true; return ex.toUpperCase(); });
+  for (let c in coinSources) {
+    let u = c.toUpperCase(); if(c!==u){coinSources[u]=coinSources[c];delete coinSources[c];ns=true;}
+    coinSources[u] = coinSources[u].map(s=>{if(s!==s.toUpperCase())ns=true;return s.toUpperCase();});
+  }
+  let nb={};
+  for(let c in balances){
+    let u=c.toUpperCase(); nb[u]={};
+    for(let s in balances[c]){
+      let su=s.toUpperCase();
+      nb[u][su] = (typeof balances[c][s]==='object') ? balances[c][s] : {amount:balances[c][s],staking:''};
     }
-
-    // --- DATA & STATE ---
-    let usdToIdr = 16000;
-    let prices = {}; let changes = {}; let coinMapCG = {};
-    let currentTab = 'exchange'; let isFetching = false;
-    let watchlist = JSON.parse(localStorage.getItem('my_assets_v2') || '[]');
-    let balances = JSON.parse(localStorage.getItem('my_balances_v2') || '{}');
-    let coinSources = JSON.parse(localStorage.getItem('my_coin_sources') || '{}');
-    let allExchanges = JSON.parse(localStorage.getItem('my_exchanges_v2') || '[]');
-    let expandedItem = null; let currentMode = 'restore';
-    let holdTimer, startX, startY;
-
-
-    const exchangeLogos = { 
-        "BINANCE": "https://assets.coingecko.com/markets/images/52/standard/binance.jpg?1706864274", 
-        "BYBIT": "https://assets.coingecko.com/markets/images/698/standard/bybit_spot.png?1706864649", 
-        "OKX": "https://res.cloudinary.com/dor7smqah/image/upload/v1774080981/unnamed_2_qebw5t.png", 
-        "GATE": "https://s2.coinmarketcap.com/static/img/exchanges/64x64/302.png", 
-        "TOKOCRYPTO": "https://www.gate.io/images/coin_icon/64/tko.png", 
-        "INDODAX": "https://assets.coingecko.com/markets/images/3/large/logogram-Indodax-new-_JPG_format.jpg?1706864243", 
-        "PINTU": "https://pintu.co.id/favicon.ico", 
-        "MEXC": "https://res.cloudinary.com/dor7smqah/image/upload/v1774081648/images_1_ah20ou.png", 
-        "KUCOIN": "https://res.cloudinary.com/dor7smqah/image/upload/v1774081889/kucoin-icon-filled-256_vhtce0.png", 
-        "BITMART": "https://res.cloudinary.com/dor7smqah/image/upload/v1774081888/unnamed_4_c5x38a.png", 
-        "BITGET": "https://assets.coingecko.com/markets/images/540/standard/2023-07-25_21.47.43.jpg?1706864507",
-        "COINBASE": "https://assets.coingecko.com/markets/images/23/standard/Coinbase_Coin_Primary.png?1706864258",
-        "UPBIT": "https://assets.coingecko.com/markets/images/117/standard/upbit.png?1706864294",
-        "RETRO": "https://res.cloudinary.com/dor7smqah/image/upload/v1774080693/wallet-glyph-black-icon-vector_v4lude.jpg", 
-        "TABUNGAN": "https://res.cloudinary.com/dor7smqah/image/upload/v1774080466/images_e9yzms.png", 
-        "EXCLAIM": "https://res.cloudinary.com/dor7smqah/image/upload/v1774081431/claimed-rubber-stamp-design-arts-600nw-2436629145_emhjcj.webp", 
-        "IMTOKEN": "https://res.cloudinary.com/dor7smqah/image/upload/v1774081431/unnamed_3_whdxwy.png",
-        "SUI": "https://assets.coingecko.com/asset_platforms/images/126/standard/sui-ocean-square.png?1727791325",
-        "SOL": "https://assets.coingecko.com/asset_platforms/images/5/standard/solana.png?1706606708",
-        "TON": "https://assets.coingecko.com/asset_platforms/images/142/small/tonblockchain.jpeg?1706606805",
-        "KEPLR": "https://res.cloudinary.com/dor7smqah/image/upload/v1774079462/keplr-icon-radii_doymj6.png",
-        "HASHPACK": "https://res.cloudinary.com/dor7smqah/image/upload/v1774080164/unnamed_1_ofbzwh.png",
-        "ZERION": "https://res.cloudinary.com/dor7smqah/image/upload/v1774079795/zerion1665411612684_zhc63d.png",
-        "XAMAN": "https://res.cloudinary.com/dor7smqah/image/upload/v1774080246/6323b6992e21c7404dc6ed64_public_zb6a6y.png",
-        "WALLET": "https://assets.coincap.io/assets/icons/twt@2x.png"
-    };
-
-    window.onload = () => { migrateToUppercase(); document.getElementById('sort-order').value = localStorage.getItem('last_sort') || 'manual'; document.getElementById('currency-view').value = localStorage.getItem('last_cur') || 'IDR'; renderList(); fetchKurs(); fetchCoinMap(); fetchAll(); setInterval(fetchAll, 60000); };
-
-    function migrateToUppercase() {
-        let needsSave = false;
-        watchlist = watchlist.map(s => { if(s !== s.toUpperCase()) needsSave = true; return s.toUpperCase(); });
-        allExchanges = allExchanges.map(ex => { if(ex !== ex.toUpperCase()) needsSave = true; return ex.toUpperCase(); });
-        for (let coin in coinSources) {
-            let upperCoin = coin.toUpperCase(); if(coin !== upperCoin) { coinSources[upperCoin] = coinSources[coin]; delete coinSources[coin]; needsSave = true; }
-            coinSources[upperCoin] = coinSources[upperCoin].map(src => { if(src !== src.toUpperCase()) needsSave = true; return src.toUpperCase(); });
-        }
-        let newBalances = {};
-        for (let coin in balances) {
-            let upperCoin = coin.toUpperCase(); newBalances[upperCoin] = {};
-            for (let src in balances[coin]) {
-                let upperSrc = src.toUpperCase();
-                if (typeof balances[coin][src] === 'object') newBalances[upperCoin][upperSrc] = balances[coin][src];
-                else newBalances[upperCoin][upperSrc] = { amount: balances[coin][src], staking: '' };
-            }
-        }
-        balances = newBalances; if(needsSave) saveAll();
-    }
-// --- CLOUD SYNC CONFIG ---
-// Link Apps Script elu yang udah aktif
-const cloudURL = "https://script.google.com/macros/s/AKfycbykRvClspX-tQiHvZJ13Kcc_87EeuK9nz-NsZiPdcTLmY26Lkdd3CZGJkVOBVGqy5X3fA/exec";
-
-// Fungsi buat ngirim data ke Brankas (Spreadsheet)
-async function syncToCloud() {
-    const dataAset = JSON.parse(localStorage.getItem('user_assets')) || [];
-    if(dataAset.length === 0) return alert("Ga ada data buat di-sync, Bro!");
-
-    try {
-        // Pake method POST buat ngirim data JSON ke Spreadsheet
-        await fetch(cloudURL, {
-            method: 'POST',
-            mode: 'no-cors', // Penting biar ga kena blokir CORS browser
-            body: JSON.stringify(dataAset)
-        });
-        alert("Data udah dikirim ke Brankas Spreadsheet!");
-    } catch(e) {
-        alert("Gagal konek ke Cloud, cek internet elu.");
-    }
+  }
+  balances=nb; if(ns) saveAll();
 }
 
-// Fungsi buat narik data dari Brankas (kalo abis reset/pindah HP)
-async function pullFromCloud() {
-    try {
-        const res = await fetch(cloudURL);
-        const dataCloud = await res.json();
-        
-        if(dataCloud && dataCloud.length > 0) {
-            // Timpa localStorage pake data dari Spreadsheet
-            localStorage.setItem('user_assets', JSON.stringify(dataCloud));
-            alert("Data ditarik! Web bakal refresh.");
-            location.reload(); 
-        } else {
-            alert("Cloud kosong, Bro!");
-        }
-    } catch(e) {
-        alert("Gagal narik data dari Brankas.");
-    }
+// ---- FETCH ----
+async function fetchKurs() {
+  try {
+    const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTIDR');
+    const d = await r.json();
+    if(d.price){ usdToIdr=parseFloat(d.price); document.getElementById('kurs-badge').innerText=`USD/IDR: ${Math.round(usdToIdr).toLocaleString('id-ID')}`; updatePricesOnly(); }
+  } catch(e){}
 }
-
-// --- CORE LOGIC (BAWAAN ELU) ---
-function switchTab(tab) { currentTab = tab; document.getElementById('tab-ex').classList.toggle('active', tab === 'exchange'); document.getElementById('tab-coin').classList.toggle('active', tab === 'coin'); renderList(); }
-function updateSettings() { localStorage.setItem('last_sort', document.getElementById('sort-order').value); localStorage.setItem('last_cur', document.getElementById('currency-view').value); renderList(); }
-
-async function fetchKurs() { try { const r = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTIDR'); const d = await r.json(); if(d.price) { usdToIdr = parseFloat(d.price); document.getElementById('kurs-live').innerText = `USD/IDR: ${Math.round(usdToIdr).toLocaleString('id-ID')}`; updatePricesOnly(); } } catch(e) {} }
-async function fetchCoinMap() { try { const r = await fetch('https://api.coingecko.com/api/v3/coins/list'); (await r.json()).forEach(c => { coinMapCG[c.symbol.toUpperCase()] = c.id; }); } catch(e) {} }
-
+async function fetchCoinMap() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/coins/list');
+    (await r.json()).forEach(c => { coinMapCG[c.symbol.toUpperCase()] = c.id; });
+  } catch(e){}
+}
 async function fetchAll() {
-    if(isFetching) return; isFetching = true;
-    let rem = watchlist.filter(s => !['IDR','USDT','USDC','USD','BUSD'].includes(s));
-    try { const res = await fetch('https://api.bybit.com/v5/market/tickers?category=spot'); const data = await res.json(); if(data.result?.list) { data.result.list.forEach(item => { let sym = item.symbol.replace('USDT',''); if(rem.includes(sym)) { prices[sym] = parseFloat(item.lastPrice); changes[sym] = (parseFloat(item.price24hPcnt) * 100).toFixed(2); rem = rem.filter(c => c !== sym); } }); } } catch(e) {}
-    if(rem.length > 0) { try { const res = await fetch('https://api.binance.com/api/v3/ticker/24hr'); const data = await res.json(); data.forEach(item => { let sym = item.symbol.replace('USDT',''); if(rem.includes(sym)) { prices[sym] = parseFloat(item.lastPrice); changes[sym] = parseFloat(item.priceChangePercent).toFixed(2); rem = rem.filter(c => c !== sym); } }); } catch(e) {} }
-    for (const s of rem) { if (coinMapCG[s]) { try { const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinMapCG[s]}&vs_currencies=usd&include_24hr_change=true`); const d = await r.json(); if(d[coinMapCG[s]]) { prices[s] = d[coinMapCG[s]].usd; changes[s] = d[coinMapCG[s]].usd_24h_change ? d[coinMapCG[s]].usd_24h_change.toFixed(2) : "0.00"; } } catch(e) {} } }
-    watchlist.forEach(s => { if(s === 'IDR') { prices[s] = 1/usdToIdr; changes[s] = "0.00"; } else if(['USDT','USDC','USD','BUSD'].includes(s)) { prices[s] = 1; changes[s] = "0.00"; } else if(!prices[s]) { prices[s] = 0; changes[s] = "0.00"; } });
-    updatePricesOnly(); isFetching = false;
+  if(isFetching) return; isFetching=true;
+  let rem = watchlist.filter(s=>!['IDR','USDT','USDC','USD','BUSD'].includes(s));
+  try {
+    const res = await fetch('https://api.bybit.com/v5/market/tickers?category=spot');
+    const data = await res.json();
+    if(data.result?.list){ data.result.list.forEach(item=>{ let sym=item.symbol.replace('USDT',''); if(rem.includes(sym)){prices[sym]=parseFloat(item.lastPrice);changes[sym]=(parseFloat(item.price24hPcnt)*100).toFixed(2);rem=rem.filter(c=>c!==sym);} }); }
+  } catch(e){}
+  if(rem.length>0){
+    try {
+      const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
+      const data = await res.json();
+      data.forEach(item=>{ let sym=item.symbol.replace('USDT',''); if(rem.includes(sym)){prices[sym]=parseFloat(item.lastPrice);changes[sym]=parseFloat(item.priceChangePercent).toFixed(2);rem=rem.filter(c=>c!==sym);} });
+    } catch(e){}
+  }
+  for(const s of rem){ if(coinMapCG[s]){ try { const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinMapCG[s]}&vs_currencies=usd&include_24hr_change=true`); const d=await r.json(); if(d[coinMapCG[s]]){prices[s]=d[coinMapCG[s]].usd;changes[s]=d[coinMapCG[s]].usd_24h_change?d[coinMapCG[s]].usd_24h_change.toFixed(2):"0.00";} }catch(e){} } }
+  watchlist.forEach(s=>{ if(s==='IDR'){prices[s]=1/usdToIdr;changes[s]="0.00";}else if(['USDT','USDC','USD','BUSD'].includes(s)){prices[s]=1;changes[s]="0.00";}else if(!prices[s]){prices[s]=0;changes[s]="0.00";} });
+  updatePricesOnly(); isFetching=false;
 }
-    function getCoinTotal(sym) { let t = 0; (coinSources[sym] || []).forEach(src => { const d = balances[sym]?.[src]; t += (typeof d === 'object') ? (parseFloat(d.amount||0) + parseFloat(d.staking||0)) : parseFloat(d||0); }); return t; }
 
-    function updatePricesOnly() {
-        const currencyView = document.getElementById('currency-view').value; let totalAllUsd = 0;
-        if (currentTab === 'exchange') {
-            allExchanges.forEach(ex => {
-                let exTotalUsd = 0; watchlist.forEach(sym => { if (coinSources[sym]?.includes(ex)) { const d = balances[sym]?.[ex]; let b = (typeof d === 'object') ? (parseFloat(d.amount||0) + parseFloat(d.staking||0)) : parseFloat(d||0); exTotalUsd += (b * (prices[sym] || 0)); } });
-                totalAllUsd += exTotalUsd; const el = document.getElementById(`val-ex-${ex}`); if (el) el.innerText = (currencyView === 'IDR') ? `Rp ${(exTotalUsd * usdToIdr).toLocaleString('id-ID', {maximumFractionDigits:0})}` : `$${exTotalUsd.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-            });
-        } else {
-            watchlist.forEach(sym => {
-                const valUsd = getCoinTotal(sym) * (prices[sym] || 0); totalAllUsd += valUsd;
-                const elVal = document.getElementById(`val-coin-${sym}`); const elPrice = document.getElementById(`price-coin-${sym}`); const elChange = document.getElementById(`change-coin-${sym}`);
-                if (elVal) elVal.innerText = (currencyView === 'IDR') ? `Rp ${(valUsd * usdToIdr).toLocaleString('id-ID', {maximumFractionDigits:0})}` : `$${valUsd.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-                if (elPrice) elPrice.innerText = sym === 'IDR' ? 'Stable IDR' : '$' + (prices[sym]||0).toLocaleString(undefined, {minimumFractionDigits: (prices[sym]||0) < 1 ? 4 : 2});
-                if (elChange) { const c = changes[sym] || "0.00"; elChange.innerText = `${parseFloat(c) >= 0 ? '+' : ''}${c}%`; elChange.className = `change-pct ${parseFloat(c) >= 0 ? 'up' : 'down'}`; }
-            });
-        }
-        document.getElementById('total-all-idr').innerText = `Rp ${Math.round(totalAllUsd*usdToIdr).toLocaleString('id-ID')}`;
-        document.getElementById('total-all-usd').innerText = `$${totalAllUsd.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-    }
+// ---- HELPERS ----
+function getCoinTotal(sym){ let t=0; (coinSources[sym]||[]).forEach(src=>{ const d=balances[sym]?.[src]; t+=(typeof d==='object')?(parseFloat(d.amount||0)+parseFloat(d.staking||0)):parseFloat(d||0); }); return t; }
 
-    function toggleDetail(id) { 
-        const target = document.getElementById(`det-${id}`); 
-        if (!target) return; 
-        if (expandedItem && expandedItem !== id) { 
-            const oldEl = document.getElementById(`det-${expandedItem}`); 
-            if (oldEl) oldEl.style.display = 'none'; 
-        } 
-        if (target.style.display === 'block') { 
-            target.style.display = 'none'; 
-            expandedItem = null; 
-        } else { 
-            target.style.display = 'block'; 
-            expandedItem = id; 
-        } 
-    }
+function fmtUsd(n){ return '$'+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtIdr(n){ return 'Rp '+Math.round(n).toLocaleString('id-ID'); }
+function fmtVal(usd){ const cv=document.getElementById('currency-view').value; return cv==='IDR' ? fmtIdr(usd*usdToIdr) : fmtUsd(usd); }
 
-    function renderList() {
-        const list = document.getElementById('main-list');
-        const query = document.getElementById('filter-input').value.toUpperCase();
-        const sortType = document.getElementById('sort-order').value;
-        let html = "";
-        
-        if (currentTab === 'exchange') {
-            let exArr = allExchanges.map(ex => {
-                let t = 0; watchlist.forEach(s => { if(coinSources[s]?.includes(ex)) { const d = balances[s]?.[ex]; let b = (typeof d === 'object') ? (parseFloat(d.amount||0) + parseFloat(d.staking||0)) : parseFloat(d||0); t += (b * (prices[s] || 0)); }});
-                return { name: ex, totalValue: t };
-            }).filter(ex => ex.name.includes(query));
+// ---- UPDATE PRICES (no full re-render) ----
+function updatePricesOnly() {
+  const cv = document.getElementById('currency-view').value;
+  let totalUsd = 0;
 
-            if (sortType === 'name') exArr.sort((a, b) => a.name.localeCompare(b.name));
-            else if (sortType === 'value') exArr.sort((a, b) => b.totalValue - a.totalValue);
-            else if (sortType === 'gainers') exArr.sort((a, b) => b.totalValue - a.totalValue);
+  if(currentTab==='exchange'){
+    allExchanges.forEach(ex=>{
+      let t=0;
+      watchlist.forEach(sym=>{ if(coinSources[sym]?.includes(ex)){const d=balances[sym]?.[ex];let b=(typeof d==='object')?(parseFloat(d.amount||0)+parseFloat(d.staking||0)):parseFloat(d||0);t+=b*(prices[sym]||0);} });
+      totalUsd+=t;
+      const el=document.getElementById(`val-ex-${ex}`);
+      if(el) el.innerText=fmtVal(t);
+      // update estimates inside expanded detail
+      watchlist.forEach(sym=>{ if(coinSources[sym]?.includes(ex)){ updateEstimates(sym, ex); } });
+    });
+  } else {
+    watchlist.forEach(sym=>{
+      const val=getCoinTotal(sym)*(prices[sym]||0); totalUsd+=val;
+      const elV=document.getElementById(`val-coin-${sym}`);
+      const elP=document.getElementById(`price-coin-${sym}`);
+      const elC=document.getElementById(`change-coin-${sym}`);
+      if(elV) elV.innerText=fmtVal(val);
+      if(elP) elP.innerText=sym==='IDR'?'Stable IDR':'$'+(prices[sym]||0).toLocaleString(undefined,{minimumFractionDigits:(prices[sym]||0)<1?4:2});
+      if(elC){ const c=changes[sym]||"0.00"; elC.innerText=`${parseFloat(c)>=0?'+':''}${c}%`; elC.className=`change-pct ${parseFloat(c)>=0?'up':'down'}`; }
+      // update estimates
+      (coinSources[sym]||[]).forEach(src=>{ updateEstimates(sym,src); });
+    });
+  }
 
-            exArr.forEach(ex => {
-                let brand = ex.name.split(' ')[0]; let suffix = ex.name.split(' ').slice(1).join(' '); const logo = exchangeLogos[brand] || "";
-                let subKoin = watchlist.filter(s => coinSources[s]?.includes(ex.name));
+  document.getElementById('total-idr').innerText=`Rp ${Math.round(totalUsd*usdToIdr).toLocaleString('id-ID')}`;
+  document.getElementById('total-usd').innerText=`$${totalUsd.toLocaleString(undefined,{minimumFractionDigits:2})}`;
+}
 
-                if (sortType === 'name') subKoin.sort((a, b) => a.localeCompare(b));
-                else if (sortType === 'value') subKoin.sort((a, b) => (getCoinTotal(b)*(prices[b]||0)) - (getCoinTotal(a)*(prices[a]||0)));
-                else if (sortType === 'gainers') {
-                    subKoin.sort((a, b) => (parseFloat(changes[b] || -999)) - (parseFloat(changes[a] || -999)));
-                }
+// update estimate labels for amount & staking
+function updateEstimates(sym, src) {
+  const d = balances[sym]?.[src];
+  const amt = (typeof d==='object') ? parseFloat(d.amount||0) : parseFloat(d||0);
+  const stk = (typeof d==='object') ? parseFloat(d.staking||0) : 0;
+  const p = prices[sym] || 0;
+  const cv = document.getElementById('currency-view').value;
 
-                html += `<div class="coin-row"><div class="coin-card" onclick="toggleDetail('${ex.name}')" onmousedown="startHold(event,'${ex.name}','exchange')" onmousemove="moveHold(event)" onmouseup="clearHold()" ontouchstart="startHold(event,'${ex.name}','exchange')" ontouchmove="moveHold(event)" ontouchend="clearHold()"><div class="logo-wrapper" style="background:#000">${logo ? `<img src="${logo}">` : `<div class="logo-initial">${brand.substring(0,2)}</div>`}</div><div class="info-group"><span class="symbol">${brand}</span>${suffix ? `<span style="font-size: 11px; color: var(--subtext); font-weight: normal;"> - ${suffix.toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}</span>` : ''}</div><div style="text-align:right; margin-right:10px;"><span id="val-ex-${ex.name}" style="font-weight:bold; font-size:14px;">-</span></div></div><div id="det-${ex.name}" class="details" style="display:${expandedItem === ex.name ? 'block' : 'none'}">${subKoin.map(s => {
-                    const d = (balances[s] && balances[s][ex.name]) ? balances[s][ex.name] : {amount:'', staking:''};
-                    return `<div class="source-row"><label class="source-label"><div class="logo-wrapper" style="width:20px; height:20px; border:none"><img src="any" onerror="handleLogoError(this, '${s}')"></div><span>${s}</span></label><div class="input-wrapper"><input type="number" class="source-input" inputmode="decimal" value="${d.amount||''}" oninput="updateBal('${s}','${ex.name}','amount',this.value)" placeholder="Amount"><input type="number" class="source-input" inputmode="decimal" value="${d.staking||''}" oninput="updateBal('${s}','${ex.name}','staking',this.value)" placeholder="Stake"></div><span class="del-src" onclick="confirmModal('Hapus ${s}?','delete',()=>removeCoinFromExchange('${s}','${ex.name}'))">×</span></div>`;
-                }).join('')}<div class="new-source-box"><input type="text" id="add-coin-to-${ex.name}" class="new-source-input" placeholder="Tambah Coin..." onkeypress="if(event.key==='Enter') addCoinToExchange('${ex.name}')"><button class="new-source-btn" onclick="addCoinToExchange('${ex.name}')">+</button></div></div></div>`;
-            });
-        } else {
-            let filtered = watchlist.filter(s => s.includes(query));
+  const elAmt = document.getElementById(`est-amt-${sym}-${src.replace(/\s/g,'_')}`);
+  const elStk = document.getElementById(`est-stk-${sym}-${src.replace(/\s/g,'_')}`);
 
-            if (sortType === 'name') filtered.sort((a, b) => a.localeCompare(b));
-            else if (sortType === 'value') filtered.sort((a, b) => (getCoinTotal(b)*(prices[b]||0)) - (getCoinTotal(a)*(prices[a]||0)));
-            else if (sortType === 'gainers') {
-                filtered.sort((a, b) => (parseFloat(changes[b] || -999)) - (parseFloat(changes[a] || -999)));
-            }
+  if(elAmt) {
+    if(amt>0 && p>0){
+      const usd=amt*p;
+      elAmt.innerHTML=`<span class="est-usd">~${cv==='IDR'?fmtIdr(usd*usdToIdr):fmtUsd(usd)}</span>`;
+    } else { elAmt.innerHTML=''; }
+  }
+  if(elStk){
+    if(stk>0 && p>0){
+      const usd=stk*p;
+      elStk.innerHTML=`<span class="est-usd">~${cv==='IDR'?fmtIdr(usd*usdToIdr):fmtUsd(usd)}</span>`;
+    } else { elStk.innerHTML=''; }
+  }
+}
 
-            filtered.forEach(s => {
-                let subSrc = [...(coinSources[s]||[])];
-                html += `<div class="coin-row"><div class="coin-card" onclick="toggleDetail('${s}')" onmousedown="startHold(event,'${s}','coin')" onmousemove="moveHold(event)" onmouseup="clearHold()" ontouchstart="startHold(event,'${s}','coin')" ontouchmove="moveHold(event)" ontouchend="clearHold()"><div class="logo-wrapper"><img src="any" onerror="handleLogoError(this, '${s}')"></div><div class="info-group"><span class="symbol">${s}</span><span id="change-coin-${s}" class="change-pct">-</span><br><span id="price-coin-${s}" style="font-size:10px; color:var(--subtext)">-</span></div><div style="text-align:right; margin-right:10px;"><span style="font-weight:bold; font-size:13px;">${getCoinTotal(s).toLocaleString()}</span><br><span id="val-coin-${s}" style="font-size:9px; color:var(--subtext)">-</span></div></div><div id="det-${s}" class="details" style="display:${expandedItem === s ? 'block' : 'none'}">${subSrc.map(src => {
-                    const d = (balances[s] && balances[s][src]) ? balances[s][src] : {amount:'', staking:''};
-                    return `<div class="source-row"><span class="source-label" style="padding-left:4px">${src}</span><div class="input-wrapper"><input type="number" class="source-input" inputmode="decimal" value="${d.amount||''}" oninput="updateBal('${s}','${src}','amount',this.value)" placeholder="Amount"><input type="number" class="source-input" inputmode="decimal" value="${d.staking||''}" oninput="updateBal('${s}','${src}','staking',this.value)" placeholder="Stake"></div><span class="del-src" onclick="confirmModal('Hapus ${src}?','delete',()=>removeSource('${s}','${src}'))">×</span></div>`;
-                }).join('')}<div class="new-source-box"><input type="text" id="new-src-input-${s}" class="new-source-input" placeholder="Source Baru..." onkeypress="if(event.key==='Enter') addCustomSource('${s}')"><button class="new-source-btn" onclick="addCustomSource('${s}')">+</button></div></div></div>`;
-            });
-        }
-        list.innerHTML = html; updatePricesOnly();
-    }
-    // --- UTILS ---
-    function saveAll() { localStorage.setItem('my_assets_v2', JSON.stringify(watchlist)); localStorage.setItem('my_balances_v2', JSON.stringify(balances)); localStorage.setItem('my_coin_sources', JSON.stringify(coinSources)); localStorage.setItem('my_exchanges_v2', JSON.stringify(allExchanges)); }
-    function updateBal(s, src, type, v) { if(!balances[s]) balances[s]={}; if(!balances[s][src] || typeof balances[s][src] !== 'object') balances[s][src] = {amount:0, staking:''}; balances[s][src][type] = v; saveAll(); updatePricesOnly(); }
-    function handleGlobalAdd() { const input = document.getElementById('global-add-input'); const v = input.value.trim().toUpperCase(); if(!v) return; if(currentTab === 'exchange') { if(!allExchanges.includes(v)) { allExchanges.push(v); saveAll(); input.value = ""; renderList(); } else showToast(`Exchange ${v} sudah ada!`); } else { if(!watchlist.includes(v)) { watchlist.push(v); coinSources[v] = []; saveAll(); input.value = ""; fetchAll(); } else showToast(`Koin ${v} sudah ada!`); } }
-    function addCoinToExchange(ex) { const input = document.getElementById(`add-coin-to-${ex}`); const s = input.value.toUpperCase().trim(); if(s) { if(!watchlist.includes(s)) { watchlist.push(s); coinSources[s]=[]; } if(!coinSources[s].includes(ex)) { coinSources[s].push(ex); saveAll(); input.value=""; renderList(); fetchAll(); } else showToast("Koin sudah ada!"); } }
-    function addCustomSource(s) { const input = document.getElementById(`new-src-input-${s}`); const v = input.value.trim().toUpperCase(); if(v) { if(!coinSources[s].includes(v)) { coinSources[s].push(v); if(!allExchanges.includes(v)) allExchanges.push(v); saveAll(); renderList(); } else showToast("Source sudah ada!"); } }
-    function removeCoinFromExchange(s, ex) { coinSources[s] = coinSources[s].filter(i => i !== ex); saveAll(); renderList(); }
-    function removeSource(s, src) { coinSources[s] = coinSources[s].filter(i => i !== src); saveAll(); renderList(); }
-    function showToast(m) { const x = document.getElementById("toast-msg"); x.innerText = m; x.className = "show"; setTimeout(() => x.className = "", 3000); }
-    function resetApp() { localStorage.clear(); watchlist = []; balances = {}; coinSources = {}; allExchanges = []; prices = {}; changes = {}; renderList(); updatePricesOnly(); showToast("Data bersih!"); }
-    function openFilePicker(mode) { currentMode = mode; document.getElementById('importFile').value = ""; document.getElementById('importFile').click(); }
+// ---- TAB & SETTINGS ----
+function switchTab(tab){ currentTab=tab; document.getElementById('tab-ex').classList.toggle('active',tab==='exchange'); document.getElementById('tab-coin').classList.toggle('active',tab==='coin'); expandedItem=null; renderList(); }
+function updateSettings(){ localStorage.setItem('last_sort',document.getElementById('sort-order').value); localStorage.setItem('last_cur',document.getElementById('currency-view').value); renderList(); }
 
-    function exportData(fileName) { 
-        const data = { assets: watchlist, balances: balances, sources: coinSources, exchanges: allExchanges }; 
-        const blob = new Blob([JSON.stringify(data)], {type:'application/json'}); 
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${fileName.toUpperCase().trim()}.json`; a.click(); 
-    }
+// ---- EXPAND ----
+function toggleDetail(id) {
+  // close prev
+  if(expandedItem && expandedItem !== id){
+    const oldCard = document.querySelector(`.coin-card[data-id="${expandedItem}"]`);
+    const oldDet = document.getElementById(`det-${expandedItem}`);
+    if(oldCard) oldCard.classList.remove('expanded');
+    if(oldDet) oldDet.classList.remove('open');
+  }
+  const card = document.querySelector(`.coin-card[data-id="${id}"]`);
+  const det = document.getElementById(`det-${id}`);
+  if(!det) return;
+  if(det.classList.contains('open')){
+    det.classList.remove('open');
+    if(card) card.classList.remove('expanded');
+    expandedItem=null;
+  } else {
+    det.classList.add('open');
+    if(card) card.classList.add('expanded');
+    expandedItem=id;
+  }
+}
 
-    function handleFileSelect(event) { 
-        const file = event.target.files[0]; if(!file) return; const reader = new FileReader(); 
-        reader.onload = (f) => { try { 
-            let d = JSON.parse(f.target.result); 
-            if (currentMode === 'restore') { watchlist = d.assets || []; balances = d.balances || {}; coinSources = d.sources || {}; allExchanges = d.exchanges || []; } 
-            else { (d.assets || []).forEach(s => { if(!watchlist.includes(s)) watchlist.push(s); }); (d.exchanges || []).forEach(ex => { if(!allExchanges.includes(ex)) allExchanges.push(ex); }); for(let s in d.sources) { if(!coinSources[s]) coinSources[s] = []; d.sources[s].forEach(src => { if(!coinSources[s].includes(src)) coinSources[s].push(src); }); } for(let s in d.balances) { if(!balances[s]) balances[s] = {}; for(let src in d.balances[s]) { balances[s][src] = d.balances[s][src]; } } } 
-            migrateToUppercase(); saveAll(); fetchKurs(); renderList(); updatePricesOnly(); fetchAll(); 
-        } catch (err) { showToast("Gagal!"); } }; reader.readAsText(file); 
-    }
+// ---- RENDER ----
+function renderList() {
+  const list = document.getElementById('main-list');
+  const query = document.getElementById('filter-input').value.toUpperCase();
+  const sortType = document.getElementById('sort-order').value;
+  let html = '';
 
-    function renameProcess(oldVal, newVal, type) {
-        if (newVal && newVal.trim() !== "" && newVal.toUpperCase() !== oldVal) {
-            const upper = newVal.toUpperCase().trim();
-            if (type === 'exchange') {
-                allExchanges = allExchanges.map(ex => ex === oldVal ? upper : ex);
-                for (let c in coinSources) coinSources[c] = coinSources[c].map(src => src === oldVal ? upper : src);
-                for (let c in balances) { if (balances[c][oldVal]) { balances[c][upper] = balances[c][oldVal]; delete balances[c][oldVal]; } }
-            } else {
-                watchlist = watchlist.map(s => s === oldVal ? upper : s);
-                if (coinSources[oldVal]) { coinSources[upper] = coinSources[oldVal]; delete coinSources[oldVal]; }
-                if (balances[oldVal]) { balances[upper] = balances[oldVal]; delete balances[oldVal]; }
-            }
-            saveAll(); renderList();
-        }
-    }
-function exportToExcel(fileName) { 
-        let csv = "sep=,\nExchange,Koin,Amount,Staking,Harga USD,Total USD\n"; 
-        allExchanges.forEach(ex => { 
-            watchlist.forEach(s => { 
-                if(coinSources[s]?.includes(ex)) { 
-                    const d = balances[s]?.[ex]; 
-                    let am = (typeof d === 'object') ? (parseFloat(d.amount||0)) : parseFloat(d||0); 
-                    let st = (typeof d === 'object') ? (parseFloat(d.staking||0)) : 0; 
-                    if(am+st > 0) csv += `${ex},${s},${am},${st},${prices[s]||0},${((am+st)*(prices[s]||0)).toFixed(2)}\n`; 
-                } 
-            }); 
-        }); 
-        const a = document.createElement('a'); 
-        a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); 
-        a.download = `${fileName.toUpperCase().trim()}.csv`; 
-        a.click(); 
-        showToast("Excel Berhasil Disimpan!");
-    }
+  if(currentTab==='exchange'){
+    let exArr = allExchanges.map(ex=>{
+      let t=0; watchlist.forEach(s=>{ if(coinSources[s]?.includes(ex)){const d=balances[s]?.[ex];let b=(typeof d==='object')?(parseFloat(d.amount||0)+parseFloat(d.staking||0)):parseFloat(d||0);t+=b*(prices[s]||0);} });
+      return {name:ex,totalValue:t};
+    }).filter(ex=>ex.name.includes(query));
 
-    // --- CLOUD SYNC LOGIC (SINKRON SPREADSHEET) ---
-    const cloudURL = "https://script.google.com/macros/s/AKfycbykRvClspX-tQiHvZJ13Kcc_87EeuK9nz-NsZiPdcTLmY26Lkdd3CZGJkVOBVGqy5X3fA/exec";
+    if(sortType==='name') exArr.sort((a,b)=>a.name.localeCompare(b.name));
+    else if(sortType==='value'||sortType==='gainers') exArr.sort((a,b)=>b.totalValue-a.totalValue);
 
-    async function syncToCloud() {
-        const dataAset = {
-            exchanges: allExchanges,
-            watchlist: watchlist,
-            balances: balances,
-            sources: coinSources
-        };
-        
-        showToast("Sedang Sinkron...");
-        try {
-            await fetch(cloudURL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify(dataAset)
-            });
-            showToast("Cloud Sync Berhasil!");
-        } catch(e) {
-            showToast("Gagal Sinkron ke Cloud");
-        }
-    }
+    exArr.forEach(ex=>{
+      const brand=ex.name.split(' ')[0];
+      const suffix=ex.name.split(' ').slice(1).join(' ');
+      const logo=exchangeLogos[brand]||'';
+      let subKoin=watchlist.filter(s=>coinSources[s]?.includes(ex.name));
+      if(sortType==='name') subKoin.sort((a,b)=>a.localeCompare(b));
+      else if(sortType==='value') subKoin.sort((a,b)=>(getCoinTotal(b)*(prices[b]||0))-(getCoinTotal(a)*(prices[a]||0)));
+      else if(sortType==='gainers') subKoin.sort((a,b)=>(parseFloat(changes[b]||'-999'))-(parseFloat(changes[a]||'-999')));
 
-    async function pullFromCloud() {
-        showToast("Menarik Data...");
-        try {
-            const res = await fetch(cloudURL);
-            const data = await res.json();
-            if(data) {
-                allExchanges = data.exchanges || [];
-                watchlist = data.watchlist || [];
-                balances = data.balances || {};
-                coinSources = data.sources || {};
-                saveAll(); // Simpan ke localStorage lokal
-                location.reload(); // Refresh buat update tampilan
-            }
-        } catch(e) {
-            showToast("Gagal Ambil Data Cloud");
-        }
-    }
+      const isOpen = expandedItem===ex.name;
+      html+=`
+<div class="coin-row">
+  <div class="coin-card${isOpen?' expanded':''}" data-id="${ex.name}" onclick="toggleDetail('${ex.name}')" onmousedown="startHold(event,'${ex.name}','exchange')" onmousemove="moveHold(event)" onmouseup="clearHold()" ontouchstart="startHold(event,'${ex.name}','exchange')" ontouchmove="moveHold(event)" ontouchend="clearHold()">
+    <div class="logo-wrap">${logo?`<img src="${logo}" onerror="this.parentElement.innerHTML='<div class=logo-init>${brand.substring(0,2)}</div>'">`:`<div class="logo-init">${brand.substring(0,2)}</div>`}</div>
+    <div class="info-grp">
+      <span class="sym">${brand}</span>${suffix?`<span class="sym-sub">- ${suffix}</span>`:''}
+    </div>
+    <div class="val-right">
+      <span id="val-ex-${ex.name}" class="val-main">-</span>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div id="det-${ex.name}" class="det-wrapper${isOpen?' open':''}">
+    <div class="det-inner">
+      ${subKoin.map(s=>{
+        const d=(balances[s]&&balances[s][ex.name])?balances[s][ex.name]:{amount:'',staking:''};
+        const srcKey=ex.name.replace(/\s/g,'_');
+        return `
+<div class="src-row">
+  <div class="src-label">
+    <div class="src-logo"><img src="any" onerror="handleLogoError(this,'${s}')"></div>
+    <span>${s}</span>
+  </div>
+  <div class="src-inputs">
+    <div class="src-input-row">
+      <input type="number" class="src-input" inputmode="decimal" value="${d.amount||''}" oninput="updateBal('${s}','${ex.name}','amount',this.value)" placeholder="Amount" onfocus="this.select()">
+      <div id="est-amt-${s}-${srcKey}" class="est-val"></div>
+    </div>
+    <div class="src-input-row">
+      <input type="number" class="src-input" inputmode="decimal" value="${d.staking||''}" oninput="updateBal('${s}','${ex.name}','staking',this.value)" placeholder="Staking" onfocus="this.select()">
+      <div id="est-stk-${s}-${srcKey}" class="est-val"></div>
+    </div>
+  </div>
+  <span class="del-btn" onclick="confirmModal('Hapus ${s} dari ${ex.name}?','delete',()=>removeCoinFromExchange('${s}','${ex.name}'))">×</span>
+</div>`;
+      }).join('')}
+      <div class="new-src-box">
+        <input type="text" id="add-coin-to-${ex.name}" class="new-src-input" placeholder="+ Tambah Coin ke exchange ini..." onkeypress="if(event.key==='Enter') addCoinToExchange('${ex.name}')">
+        <button class="new-src-btn" onclick="addCoinToExchange('${ex.name}')">+</button>
+      </div>
+    </div>
+  </div>
+</div>`;
+    });
 
-    function startHold(event, id, type) {
-        const touch = event.touches ? event.touches[0] : event;
-        startX = touch.clientX; startY = touch.clientY;
-        holdTimer = setTimeout(() => {
-            if (type === 'exchange') confirmModal(`HAPUS ${id}?`, 'delete', () => { allExchanges = allExchanges.filter(ex => ex !== id); saveAll(); renderList(); }, () => renamePopup(id, 'exchange'));
-            else confirmModal(`HAPUS ${id}?`, 'delete', () => { watchlist = watchlist.filter(s => s !== id); delete balances[id]; delete coinSources[id]; saveAll(); renderList(); }, () => renamePopup(id, 'coin'));
-        }, 700);
-    }
+  } else {
+    let filtered=watchlist.filter(s=>s.includes(query));
+    if(sortType==='name') filtered.sort((a,b)=>a.localeCompare(b));
+    else if(sortType==='value') filtered.sort((a,b)=>(getCoinTotal(b)*(prices[b]||0))-(getCoinTotal(a)*(prices[a]||0)));
+    else if(sortType==='gainers') filtered.sort((a,b)=>(parseFloat(changes[b]||'-999'))-(parseFloat(changes[a]||'-999')));
+
+    filtered.forEach(s=>{
+      const subSrc=[...(coinSources[s]||[])];
+      const isOpen=expandedItem===s;
+      html+=`
+<div class="coin-row">
+  <div class="coin-card${isOpen?' expanded':''}" data-id="${s}" onclick="toggleDetail('${s}')" onmousedown="startHold(event,'${s}','coin')" onmousemove="moveHold(event)" onmouseup="clearHold()" ontouchstart="startHold(event,'${s}','coin')" ontouchmove="moveHold(event)" ontouchend="clearHold()">
+    <div class="logo-wrap"><img src="any" onerror="handleLogoError(this,'${s}')"></div>
+    <div class="info-grp">
+      <span class="sym">${s}</span><span id="change-coin-${s}" class="change-pct">-</span>
+      <div id="price-coin-${s}" class="price-line">-</div>
+    </div>
+    <div class="val-right">
+      <span class="val-main">${getCoinTotal(s).toLocaleString()}</span>
+      <div id="val-coin-${s}" class="val-sub">-</div>
+    </div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div id="det-${s}" class="det-wrapper${isOpen?' open':''}">
+    <div class="det-inner">
+      ${subSrc.map(src=>{
+        const d=(balances[s]&&balances[s][src])?balances[s][src]:{amount:'',staking:''};
+        const srcKey=src.replace(/\s/g,'_');
+        return `
+<div class="src-row">
+  <span class="src-label">${src}</span>
+  <div class="src-inputs">
+    <div class="src-input-row">
+      <input type="number" class="src-input" inputmode="decimal" value="${d.amount||''}" oninput="updateBal('${s}','${src}','amount',this.value)" placeholder="Amount" onfocus="this.select()">
+      <div id="est-amt-${s}-${srcKey}" class="est-val"></div>
+    </div>
+    <div class="src-input-row">
+      <input type="number" class="src-input" inputmode="decimal" value="${d.staking||''}" oninput="updateBal('${s}','${src}','staking',this.value)" placeholder="Staking" onfocus="this.select()">
+      <div id="est-stk-${s}-${srcKey}" class="est-val"></div>
+    </div>
+  </div>
+  <span class="del-btn" onclick="confirmModal('Hapus ${src}?','delete',()=>removeSource('${s}','${src}'))">×</span>
+</div>`;
+      }).join('')}
+      <div class="new-src-box">
+        <input type="text" id="new-src-input-${s}" class="new-src-input" placeholder="+ Tambah Source..." onkeypress="if(event.key==='Enter') addCustomSource('${s}')">
+        <button class="new-src-btn" onclick="addCustomSource('${s}')">+</button>
+      </div>
+    </div>
+  </div>
+</div>`;
+    });
+  }
+
+  list.innerHTML=html;
+  updatePricesOnly();
+}
+
+// ---- DATA OPS ----
+function saveAll(){ localStorage.setItem('my_assets_v2',JSON.stringify(watchlist)); localStorage.setItem('my_balances_v2',JSON.stringify(balances)); localStorage.setItem('my_coin_sources',JSON.stringify(coinSources)); localStorage.setItem('my_exchanges_v2',JSON.stringify(allExchanges)); }
+function updateBal(s,src,type,v){ if(!balances[s])balances[s]={}; if(!balances[s][src]||typeof balances[s][src]!=='object')balances[s][src]={amount:0,staking:''}; balances[s][src][type]=v; saveAll(); updatePricesOnly(); }
+function handleGlobalAdd(){ const inp=document.getElementById('global-add-input'); const v=inp.value.trim().toUpperCase(); if(!v)return; if(currentTab==='exchange'){if(!allExchanges.includes(v)){allExchanges.push(v);saveAll();inp.value='';renderList();}else showToast(`${v} sudah ada!`);}else{if(!watchlist.includes(v)){watchlist.push(v);coinSources[v]=[];saveAll();inp.value='';fetchAll();}else showToast(`${v} sudah ada!`);} }
+function addCoinToExchange(ex){ const inp=document.getElementById(`add-coin-to-${ex}`); const s=inp.value.toUpperCase().trim(); if(s){if(!watchlist.includes(s)){watchlist.push(s);coinSources[s]=[];}if(!coinSources[s].includes(ex)){coinSources[s].push(ex);saveAll();inp.value='';renderList();fetchAll();}else showToast("Koin sudah ada!"); } }
+function addCustomSource(s){ const inp=document.getElementById(`new-src-input-${s}`); const v=inp.value.trim().toUpperCase(); if(v){if(!coinSources[s].includes(v)){coinSources[s].push(v);if(!allExchanges.includes(v))allExchanges.push(v);saveAll();renderList();}else showToast("Source sudah ada!"); } }
+function removeCoinFromExchange(s,ex){ coinSources[s]=coinSources[s].filter(i=>i!==ex); saveAll(); renderList(); }
+function removeSource(s,src){ coinSources[s]=coinSources[s].filter(i=>i!==src); saveAll(); renderList(); }
+function resetApp(){ localStorage.clear(); watchlist=[];balances={};coinSources={};allExchanges={};prices={};changes={}; renderList(); updatePricesOnly(); showToast("Data bersih!"); }
+function openFilePicker(mode){ currentMode=mode; document.getElementById('importFile').value=''; document.getElementById('importFile').click(); }
+function exportData(fn){ const data={assets:watchlist,balances,sources:coinSources,exchanges:allExchanges}; const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'})); a.download=`${fn.toUpperCase().trim()}.json`; a.click(); }
+function handleFileSelect(e){ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=(ev)=>{ try{ let d=JSON.parse(ev.target.result); if(currentMode==='restore'){watchlist=d.assets||[];balances=d.balances||{};coinSources=d.sources||{};allExchanges=d.exchanges||[];}else{(d.assets||[]).forEach(s=>{if(!watchlist.includes(s))watchlist.push(s);});(d.exchanges||[]).forEach(ex=>{if(!allExchanges.includes(ex))allExchanges.push(ex);});for(let s in d.sources){if(!coinSources[s])coinSources[s]=[];d.sources[s].forEach(src=>{if(!coinSources[s].includes(src))coinSources[s].push(src);});}for(let s in d.balances){if(!balances[s])balances[s]={};for(let src in d.balances[s])balances[s][src]=d.balances[s][src];}} migrateToUppercase();saveAll();fetchKurs();renderList();fetchAll();}catch(err){showToast("Gagal baca file!");} }; r.readAsText(f); }
+function renameProcess(oldVal,newVal,type){ if(newVal&&newVal.trim()!==''&&newVal.toUpperCase()!==oldVal){ const u=newVal.toUpperCase().trim(); if(type==='exchange'){allExchanges=allExchanges.map(ex=>ex===oldVal?u:ex);for(let c in coinSources)coinSources[c]=coinSources[c].map(src=>src===oldVal?u:src);for(let c in balances){if(balances[c][oldVal]){balances[c][u]=balances[c][oldVal];delete balances[c][oldVal];}}}else{watchlist=watchlist.map(s=>s===oldVal?u:s);if(coinSources[oldVal]){coinSources[u]=coinSources[oldVal];delete coinSources[oldVal];}if(balances[oldVal]){balances[u]=balances[oldVal];delete balances[oldVal];}} saveAll();renderList(); } }
+function exportToExcel(fn){ let csv="sep=,\nExchange,Koin,Amount,Staking,Harga USD,Total USD\n"; allExchanges.forEach(ex=>{ watchlist.forEach(s=>{ if(coinSources[s]?.includes(ex)){ const d=balances[s]?.[ex]; let am=(typeof d==='object')?parseFloat(d.amount||0):parseFloat(d||0); let st=(typeof d==='object')?parseFloat(d.staking||0):0; if(am+st>0)csv+=`${ex},${s},${am},${st},${prices[s]||0},${((am+st)*(prices[s]||0)).toFixed(2)}\n`; } }); }); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`${fn.toUpperCase().trim()}.csv`; a.click(); showToast("Excel berhasil!"); }
+
+// ---- HOLD GESTURE ----
+function startHold(e,id,type){ const t=e.touches?e.touches[0]:e; startX=t.clientX;startY=t.clientY; holdTimer=setTimeout(()=>{ if(type==='exchange')confirmModal(`HAPUS / RENAME ${id}?`,'delete',()=>{allExchanges=allExchanges.filter(ex=>ex!==id);saveAll();renderList();},()=>renamePopup(id,'exchange')); else confirmModal(`HAPUS / RENAME ${id}?`,'delete',()=>{watchlist=watchlist.filter(s=>s!==id);delete balances[id];delete coinSources[id];saveAll();renderList();},()=>renamePopup(id,'coin')); },700); }
+function moveHold(e){ if(!holdTimer)return; const t=e.touches?e.touches[0]:e; if(Math.abs(t.clientX-startX)>15||Math.abs(t.clientY-startY)>15)clearHold(); }
+function clearHold(){ clearTimeout(holdTimer);holdTimer=null; }
+
+// ---- TOAST ----
+function showToast(m){ const el=document.getElementById('toast'); el.innerText=m; el.className='show'; setTimeout(()=>el.className='',3000); }
+
+// ---- MODAL ----
+function closeModal(){ document.getElementById('modal-overlay').classList.remove('active'); document.getElementById('modal-input').style.display='none'; }
+function confirmModal(msg,type,onOk,onEdit=null){ const ov=document.getElementById('modal-overlay'); document.getElementById('modal-title').innerText=msg; let btns=''; if(type==='delete'){btns=`<button class="mbtn mbtn-del" id="mb-ok">HAPUS</button>`;if(onEdit)btns+=`<button class="mbtn mbtn-edit" id="mb-edit">EDIT</button>`;btns+=`<button class="mbtn mbtn-cancel" onclick="closeModal()">BATAL</button>`;}else{btns=`<button class="mbtn mbtn-ok" id="mb-ok">OKE</button><button class="mbtn mbtn-cancel" onclick="closeModal()">BATAL</button>`;} document.getElementById('modal-btns').innerHTML=btns; document.getElementById('mb-ok').onclick=()=>{closeModal();onOk();}; if(onEdit)document.getElementById('mb-edit').onclick=()=>{closeModal();onEdit();}; ov.classList.add('active'); }
+function openBackupPopup(){ const now=new Date(); const ts=`PORTO_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`; const inp=document.getElementById('modal-input'); document.getElementById('modal-title').innerText='SIMPAN BACKUP'; inp.style.display='block'; inp.value=ts; document.getElementById('modal-btns').innerHTML=`<button class="mbtn mbtn-ok" id="mb-bk">OKE</button><button class="mbtn mbtn-cancel" onclick="closeModal()">BATAL</button>`; document.getElementById('mb-bk').onclick=()=>{exportData(inp.value);closeModal();}; document.getElementById('modal-overlay').classList.add('active'); setTimeout(()=>{inp.focus();let v=inp.value;inp.value='';inp.value=v;},250); }
+function renamePopup(old,type){ const inp=document.getElementById('modal-input'); document.getElementById('modal-title').innerText='RENAME '+old; inp.style.display='block'; inp.value=old; document.getElementById('modal-btns').innerHTML=`<button class="mbtn mbtn-ok" id="mb-rn">SIMPAN</button><button class="mbtn mbtn-cancel" onclick="closeModal()">BATAL</button>`; document.getElementById('mb-rn').onclick=()=>{renameProcess(old,inp.value,type);closeModal();}; document.getElementById('modal-overlay').classList.add('active'); setTimeout(()=>{inp.focus();let v=inp.value;inp.value='';inp.value=v;},250); }
+function openExcelPopup(){ const now=new Date(); const ts=`PORTO_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`; const inp=document.getElementById('modal-input'); document.getElementById('modal-title').innerText='EXPORT KE EXCEL (.CSV)'; inp.style.display='block'; inp.value=ts; document.getElementById('modal-btns').innerHTML=`<button class="mbtn mbtn-ok" id="mb-xl">OKE</button><button class="mbtn mbtn-cancel" onclick="closeModal()">BATAL</button>`; document.getElementById('mb-xl').onclick=()=>{exportToExcel(inp.value);closeModal();}; document.getElementById('modal-overlay').classList.add('active'); setTimeout(()=>inp.focus(),250); }
+</script>
+</body>
+</html>
