@@ -190,6 +190,9 @@
     }
     .filter-input {
       flex: 1;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
       background: rgba(255,255,255,0.04);
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -664,6 +667,8 @@
 
     /* DESKTOP / LANDSCAPE */
     @media (min-width: 700px) {
+      :root { --sidebar-w: 340px; }
+
       .app-shell {
         flex-direction: row;
         min-height: 100vh;
@@ -681,19 +686,19 @@
         border-right: 1px solid var(--border);
         display: flex;
         flex-direction: column;
-        padding: 20px 16px;
-        gap: 14px;
+        padding: 24px 20px;
+        gap: 16px;
       }
       .sidebar::-webkit-scrollbar { width: 4px; }
       .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
 
       .sidebar-brand {
         font-family: var(--mono);
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 700;
         color: var(--accent);
         letter-spacing: 0.14em;
-        padding-bottom: 14px;
+        padding-bottom: 16px;
         border-bottom: 1px solid var(--border);
       }
       .sidebar-brand span { color: var(--accent); }
@@ -701,26 +706,48 @@
       .sidebar .summary-card {
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+        gap: 10px;
+        padding: 18px 20px;
+        margin: 0;
       }
-      .sidebar .summary-idr { font-size: 20px; }
+      .sidebar .summary-card .summary-right {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .sidebar .summary-idr { font-size: 28px; }
+      .sidebar .summary-usd { font-size: 13px; }
+      .sidebar .summary-label { font-size: 10px; }
 
       .sidebar .kurs-badge { align-self: flex-end; }
 
       .sidebar .tab-row { margin-bottom: 0; }
-      .sidebar .filter-input { margin-bottom: 0; width: 100%; max-width: 100%; box-sizing: border-box; }
-      .sidebar .sort-row { flex-direction: column; }
+
+      /* FIX: filter input lebar sesuai sidebar, tidak melar */
+      .sidebar .filter-input {
+        margin-bottom: 0;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+        flex: none;
+        display: block;
+      }
+
+      .sidebar .sort-row { flex-direction: column; gap: 8px; }
+      .sidebar .ctrl-select { font-size: 12px; padding: 8px 10px; }
 
       .sidebar .backup-area {
         margin-top: auto;
-        padding-top: 14px;
+        padding-top: 16px;
         border-top: 1px solid var(--border);
         display: flex;
         flex-direction: column;
         gap: 6px;
       }
-      .sidebar .add-row { flex-direction: column; }
-      .sidebar .add-main-btn { padding: 10px; }
+      .sidebar .add-row { flex-direction: column; gap: 8px; }
+      .sidebar .add-main-btn { padding: 11px; font-size: 14px; }
 
       /* Hide mobile sticky elements */
       .top-bar { display: none; }
@@ -799,6 +826,9 @@
         <div class="summary-label">Total Saldo</div>
         <div id="total-idr-desk" class="summary-idr">Rp 0</div>
         <div id="total-usd-desk" class="summary-usd">$0.00</div>
+      </div>
+      <div class="summary-right">
+        <div id="asset-count-badge-desk" class="asset-count">0 exchange</div>
       </div>
     </div>
 
@@ -1259,8 +1289,10 @@ function updatePricesOnly() {
   // asset count badge
   const cnt = currentTab === 'exchange' ? allExchanges.length : watchlist.length;
   const label = currentTab === 'exchange' ? 'exchange' : 'aset';
-  const badge = document.getElementById('asset-count-badge');
-  if(badge) badge.innerText = `${cnt} ${label}`;
+  ['asset-count-badge', 'asset-count-badge-desk'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.innerText = `${cnt} ${label}`;
+  });
 }
 
 // ══════════════════════════════
