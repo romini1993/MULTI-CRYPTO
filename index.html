@@ -73,7 +73,7 @@
       letter-spacing: 0.12em;
       flex-shrink: 0;
     }
-    .brand span { color: var(--muted); }
+    .brand span { color: var(--accent); }
 
     .kurs-badge {
       font-family: var(--mono);
@@ -159,9 +159,6 @@
       background: rgba(10,10,15,0.95);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      position: sticky;
-      top: calc(53px + 90px);
-      z-index: 140;
     }
 
     .tab-row {
@@ -201,7 +198,7 @@
       background: rgba(255,255,255,0.04);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 9px 14px;
+      padding: 7px 12px;
       color: var(--text);
       font-family: var(--sans);
       font-size: 13px;
@@ -378,7 +375,52 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 60px;
+      max-width: 56px;
+    }
+
+    /* Mobile: source row jadi 2 baris - label di atas, input di bawah */
+    @media (max-width: 699px) {
+      .source-row {
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+      .src-label {
+        min-width: unset;
+        flex: 1;
+      }
+      .src-label-txt {
+        max-width: 100%;
+        font-size: 11px;
+      }
+      .src-estimate {
+        font-size: 10px;
+        min-width: unset;
+        flex: none;
+      }
+      .src-del { margin-left: auto; }
+      .src-inputs {
+        width: 100%;
+        flex: none;
+      }
+      .src-input {
+        flex: 1;
+        width: unset;
+        min-width: 0;
+      }
+    }
+
+    /* Desktop: nama tidak terpotong, max-width lebih besar */
+    @media (min-width: 700px) {
+      .src-label-txt {
+        max-width: 120px;
+        font-size: 13px;
+      }
+      .src-label {
+        min-width: 100px;
+      }
+      .src-inputs { gap: 8px; }
+      .src-input { width: 100px; }
+      .src-estimate { min-width: 75px; font-size: 11px; }
     }
 
     .src-inputs {
@@ -509,7 +551,7 @@
       flex-wrap: wrap;
       gap: 5px;
       overflow: hidden;
-      max-height: 80px;
+      max-height: 120px;
       transition: max-height 0.3s ease, opacity 0.3s ease;
       opacity: 1;
     }
@@ -659,7 +701,7 @@
         padding-bottom: 14px;
         border-bottom: 1px solid var(--border);
       }
-      .sidebar-brand span { color: var(--muted); }
+      .sidebar-brand span { color: var(--accent); }
 
       .sidebar .summary-card {
         flex-direction: column;
@@ -688,7 +730,6 @@
       /* Hide mobile sticky elements */
       .top-bar { display: none; }
       .summary-wrap { display: none; }
-      .controls-wrap { display: none; }
       .bottom-bar { display: none; }
 
       /* Main content */
@@ -699,6 +740,13 @@
       }
       .main-content::-webkit-scrollbar { width: 5px; }
       .main-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 4px; }
+
+      /* Desktop: nama item tidak terpotong */
+      .item-name {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: unset;
+      }
 
       #main-list {
         padding: 0;
@@ -807,7 +855,7 @@
       <div id="kurs-live" class="kurs-badge">USD/IDR: ...</div>
     </div>
 
-    <!-- MOBILE: Sticky Summary -->
+    <!-- MOBILE: Sticky Summary + Controls (satu block sticky) -->
     <div class="summary-wrap">
       <div class="summary-card">
         <div class="summary-left">
@@ -819,28 +867,27 @@
           <div id="asset-count-badge" class="asset-count">0 aset</div>
         </div>
       </div>
-    </div>
-
-    <!-- MOBILE: Controls -->
-    <div class="controls-wrap">
-      <div class="tab-row">
-        <button id="tab-ex" class="tab-btn active" onclick="switchTab('exchange')">Exchange</button>
-        <button id="tab-coin" class="tab-btn" onclick="switchTab('coin')">Coin</button>
-      </div>
-      <div class="filter-row">
-        <input type="text" id="filter-input" class="filter-input" placeholder="Cari..." oninput="renderList()">
-      </div>
-      <div class="sort-row">
-        <select id="sort-order" class="ctrl-select" onchange="updateSettings('mob')">
-          <option value="manual">Urutan: Default</option>
-          <option value="name">Urutan: A-Z</option>
-          <option value="value">Urutan: Terbesar</option>
-          <option value="gainers">Urutan: Gainers</option>
-        </select>
-        <select id="currency-view" class="ctrl-select" onchange="updateSettings('mob')">
-          <option value="IDR">Mata Uang: IDR</option>
-          <option value="USD">Mata Uang: USD</option>
-        </select>
+      <!-- Controls langsung di dalam sticky block yang sama -->
+      <div class="controls-wrap">
+        <div class="tab-row">
+          <button id="tab-ex" class="tab-btn active" onclick="switchTab('exchange')">Exchange</button>
+          <button id="tab-coin" class="tab-btn" onclick="switchTab('coin')">Coin</button>
+        </div>
+        <div class="filter-row">
+          <input type="text" id="filter-input" class="filter-input" placeholder="Cari..." oninput="renderList()">
+        </div>
+        <div class="sort-row">
+          <select id="sort-order" class="ctrl-select" onchange="updateSettings('mob')">
+            <option value="manual">Urutan: Default</option>
+            <option value="name">Urutan: A-Z</option>
+            <option value="value">Urutan: Terbesar</option>
+            <option value="gainers">Urutan: Gainers</option>
+          </select>
+          <select id="currency-view" class="ctrl-select" onchange="updateSettings('mob')">
+            <option value="IDR">Mata Uang: IDR</option>
+            <option value="USD">Mata Uang: USD</option>
+          </select>
+        </div>
       </div>
     </div>
 
