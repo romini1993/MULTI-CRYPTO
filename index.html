@@ -1363,13 +1363,11 @@ let coinSearchTarget = null; // { type: 'global' | 'exchange', exchange: 'BINANC
 
 function logoSrcs(sym) {
   const s = sym.toLowerCase();
-  const cgId = coinMapCG[sym.toUpperCase()] || '';
   const sources = [];
-  if (cgId) sources.push(`https://assets.coingecko.com/coins/images/thumb/${cgId}.png`);
+  if (coinImgMap[sym.toUpperCase()]) sources.push(coinImgMap[sym.toUpperCase()]);
   sources.push(
-    `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${s}.png`,
     `https://assets.coincap.io/assets/icons/${s}@2x.png`,
-    `https://static.okx.com/cdn/oksupport/asset/currency/icon/${s}.png`,
+    `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${s}.png`,
   );
   return sources;
 }
@@ -1392,10 +1390,12 @@ function closeCoinSearch() {
 async function loadCGList() {
   // Cek cache dulu - kalau ada dan masih fresh (< 24 jam), pakai cache
   try {
-    const cached = localStorage.getItem('cg_coin_list');
-    const cachedTs = parseInt(localStorage.getItem('cg_coin_list_ts') || '0');
-    if (cached && Date.now() - cachedTs < 24 * 60 * 60 * 1000) {
-      cgList = JSON.parse(cached);
+    const cached = localStorage.getItem('cg_coin_map');
+    const cachedTs = parseInt(localStorage.getItem('cg_coin_map_ts') || '0');
+    if (cached && Date.now() - cachedTs < 24 * 60 * 60 * 1000 && cgList.length === 0) {
+      const map = JSON.parse(cached);
+      // Rebuild cgList dari cache map
+      cgList = Object.entries(map).map(([sym, id]) => ({ id, symbol: sym.toLowerCase(), name: id }));
       cgList.forEach(c => { coinMapCG[c.symbol.toUpperCase()] = c.id; });
       filterCoinSearch();
       return;
@@ -1408,19 +1408,20 @@ async function loadCGList() {
     const r = await fetch('https://api.coingecko.com/api/v3/coins/list?include_platform=false');
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     cgList = await r.json();
-    cgList.forEach(c => { coinMapCG[c.symbol.toUpperCase()] = c.id; });
-    // Simpan ke cache
+    const newMap = {};
+    cgList.forEach(c => { newMap[c.symbol.toUpperCase()] = c.id; coinMapCG[c.symbol.toUpperCase()] = c.id; });
     try {
-      localStorage.setItem('cg_coin_list', JSON.stringify(cgList));
-      localStorage.setItem('cg_coin_list_ts', Date.now().toString());
+      localStorage.setItem('cg_coin_map', JSON.stringify(newMap));
+      localStorage.setItem('cg_coin_map_ts', Date.now().toString());
     } catch(e) {}
     filterCoinSearch();
   } catch(e) {
-    // Kalau gagal fetch tapi ada cache lama, tetap pakai cache lama
+    // Kalau gagal fetch tapi ada cache lama, tetap pakai
     try {
-      const cached = localStorage.getItem('cg_coin_list');
-      if (cached) {
-        cgList = JSON.parse(cached);
+      const cached = localStorage.getItem('cg_coin_map');
+      if (cached && cgList.length === 0) {
+        const map = JSON.parse(cached);
+        cgList = Object.entries(map).map(([sym, id]) => ({ id, symbol: sym.toLowerCase(), name: id }));
         cgList.forEach(c => { coinMapCG[c.symbol.toUpperCase()] = c.id; });
         filterCoinSearch();
         return;
@@ -1766,13 +1767,11 @@ function handleLogoError(img, sym) {
   if (sym === 'IDR') { img.parentElement.innerHTML = `<div class="logo-initial" style="color:#22d3a0">RP</div>`; return; }
   const retry = parseInt(img.getAttribute('data-retry') || '0');
   const s = sym.toLowerCase();
-  const cgId = coinMapCG[sym] || coinMapCG[sym.toUpperCase()] || '';
   const sources = [];
-  if (cgId) sources.push(`https://assets.coingecko.com/coins/images/thumb/${cgId}.png`);
+  if (coinImgMap[sym] || coinImgMap[sym.toUpperCase()]) sources.push(coinImgMap[sym] || coinImgMap[sym.toUpperCase()]);
   sources.push(
-    `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${s}.png`,
     `https://assets.coincap.io/assets/icons/${s}@2x.png`,
-    `https://static.okx.com/cdn/oksupport/asset/currency/icon/${s}.png`
+    `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/128/color/${s}.png`
   );
   if (retry < sources.length) { img.setAttribute('data-retry', retry + 1); img.src = sources[retry]; }
   else { img.parentElement.innerHTML = `<div class="logo-initial">${sym.substring(0,2)}</div>`; }
@@ -1782,7 +1781,7 @@ function handleLogoError(img, sym) {
 //  DATA & STATE
 // ══════════════════════════════
 let usdToIdr = 16000;
-let prices = {}, changes = {}, coinMapCG = {};
+let prices = {}, changes = {}, coinMapCG = {}, coinImgMap = {};
 let currentTab = 'exchange';
 let isFetching = false;
 let watchlist = JSON.parse(localStorage.getItem('my_assets_v2') || '[]');
@@ -1827,6 +1826,13 @@ window.onload = () => {
   const savedCur = localStorage.getItem('last_cur') || 'IDR';
   ['sort-order','sort-order-desk'].forEach(id => { const el = document.getElementById(id); if(el) el.value = savedSort; });
   ['currency-view','currency-view-desk'].forEach(id => { const el = document.getElementById(id); if(el) el.value = savedCur; });
+  // Load coinImgMap dari cache supaya logo langsung tampil saat pertama render
+  try {
+    const cachedImg = localStorage.getItem('cg_coin_img');
+    const cachedMap = localStorage.getItem('cg_coin_map');
+    if (cachedImg) Object.assign(coinImgMap, JSON.parse(cachedImg));
+    if (cachedMap) Object.assign(coinMapCG, JSON.parse(cachedMap));
+  } catch(e) {}
   renderList();
   fetchKurs();
   fetchCoinMap();
@@ -1871,30 +1877,73 @@ async function fetchKurs() {
 }
 
 async function fetchCoinMap() {
-  // Cek cache localStorage dulu (shared dengan loadCGList)
+  // Load cache dulu
   try {
-    const cached = localStorage.getItem('cg_coin_list');
-    const cachedTs = parseInt(localStorage.getItem('cg_coin_list_ts') || '0');
-    if (cached && Date.now() - cachedTs < 24 * 60 * 60 * 1000) {
-      JSON.parse(cached).forEach(c => { coinMapCG[c.symbol.toUpperCase()] = c.id; });
+    const cachedMap = localStorage.getItem('cg_coin_map');
+    const cachedImg = localStorage.getItem('cg_coin_img');
+    const cachedTs  = parseInt(localStorage.getItem('cg_coin_map_ts') || '0');
+    const fresh = Date.now() - cachedTs < 24 * 60 * 60 * 1000;
+    if (cachedMap && fresh) {
+      Object.assign(coinMapCG, JSON.parse(cachedMap));
+      if (cachedImg) Object.assign(coinImgMap, JSON.parse(cachedImg));
       return;
     }
   } catch(e) {}
+
+  // Fetch /coins/markets — langsung dapat image URL, max 250 koin per page
+  try {
+    const pages = [1, 2, 3, 4]; // 1000 koin top by market cap
+    const all = [];
+    for (const page of pages) {
+      try {
+        const r = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=250&page=${page}&sparkline=false`);
+        if (!r.ok) break;
+        const data = await r.json();
+        all.push(...data);
+        if (data.length < 250) break;
+      } catch(e) { break; }
+    }
+    if (all.length > 0) {
+      const newMap = {}, newImg = {};
+      all.forEach(c => {
+        const sym = c.symbol.toUpperCase();
+        newMap[sym] = c.id;
+        if (c.image && !c.image.includes('missing')) newImg[sym] = c.image;
+      });
+      Object.assign(coinMapCG, newMap);
+      Object.assign(coinImgMap, newImg);
+      try {
+        localStorage.setItem('cg_coin_map', JSON.stringify(newMap));
+        localStorage.setItem('cg_coin_img', JSON.stringify(newImg));
+        localStorage.setItem('cg_coin_map_ts', Date.now().toString());
+        // Hapus cache lama dari sistem sebelumnya
+        localStorage.removeItem('cg_coin_list');
+        localStorage.removeItem('cg_coin_list_ts');
+      } catch(e) {}
+      renderList(); // Re-render setelah dapat image map
+      return;
+    }
+  } catch(e) {}
+
+  // Fallback: coba /coins/list kalau markets gagal
   try {
     const r = await fetch('https://api.coingecko.com/api/v3/coins/list?include_platform=false');
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const list = await r.json();
-    list.forEach(c => { coinMapCG[c.symbol.toUpperCase()] = c.id; });
-    // Simpan ke cache supaya loadCGList juga bisa pakai
+    const newMap = {};
+    list.forEach(c => { newMap[c.symbol.toUpperCase()] = c.id; });
+    Object.assign(coinMapCG, newMap);
     try {
-      localStorage.setItem('cg_coin_list', JSON.stringify(list));
-      localStorage.setItem('cg_coin_list_ts', Date.now().toString());
+      localStorage.setItem('cg_coin_map', JSON.stringify(newMap));
+      localStorage.setItem('cg_coin_map_ts', Date.now().toString());
     } catch(e) {}
   } catch(e) {
-    // Kalau gagal, coba pakai cache lama walau expired
+    // Pakai cache lama walau expired
     try {
-      const cached = localStorage.getItem('cg_coin_list');
-      if (cached) JSON.parse(cached).forEach(c => { coinMapCG[c.symbol.toUpperCase()] = c.id; });
+      const old = localStorage.getItem('cg_coin_map');
+      if (old) Object.assign(coinMapCG, JSON.parse(old));
+      const oldImg = localStorage.getItem('cg_coin_img');
+      if (oldImg) Object.assign(coinImgMap, JSON.parse(oldImg));
     } catch(e2) {}
   }
 }
