@@ -322,13 +322,13 @@
     .item-detail {
       overflow: hidden;
       max-height: 0;
-      transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
+      transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease;
       opacity: 0;
       background: rgba(0,0,0,0.25);
       border-top: 0px solid var(--border);
     }
     .item-detail.open {
-      max-height: 800px;
+      max-height: 9999px;
       opacity: 1;
       border-top-width: 1px;
     }
@@ -792,17 +792,18 @@
         padding: 8px 9px;
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 3px;
         min-width: 0;
       }
       .stat-top-row {
         display: flex;
         align-items: center;
         gap: 5px;
+        min-width: 0;
       }
       .stat-icon {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
         background: var(--surface);
         border: 1px solid var(--border);
@@ -827,14 +828,15 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        flex: 1;
+        min-width: 0;
       }
       .stat-price {
         font-family: var(--mono);
         font-size: 9px;
         color: var(--muted);
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        flex-shrink: 0;
       }
       .stat-chg {
         font-family: var(--mono);
@@ -1598,13 +1600,12 @@ function updatePricesOnly() {
     const fmtPrice = (p) => p >= 1000 ? `$${Math.round(p).toLocaleString()}` : p >= 1 ? `$${p.toFixed(2)}` : `$${p.toFixed(4)}`;
 
     gainersEl.innerHTML = ranked.length ? ranked.map(g => {
-      const sym2 = g.sym.substring(0,2);
       return `<div class="stat-box">
         <div class="stat-top-row">
           <div class="stat-icon"><img src="any" onerror="handleLogoError(this,'${g.sym}')"></div>
           <span class="stat-sym">${g.sym}</span>
+          <span class="stat-price">${fmtPrice(g.price)}</span>
         </div>
-        <div class="stat-price">${fmtPrice(g.price)}</div>
         <div class="stat-chg ${g.chg >= 0 ? 'green' : 'red'}">${g.chg >= 0 ? '+' : ''}${g.chg.toFixed(2)}%</div>
       </div>`;
     }).join('') :
@@ -1695,10 +1696,8 @@ function renderList() {
           <div class="source-row">
             <div class="src-label">
               <div class="src-label-logo"><img src="any" onerror="handleLogoError(this,'${s}')"></div>
-              <div>
-                <div class="src-label-txt">${s}</div>
-                <div style="font-family:var(--mono);font-size:9px;color:${chgColor};line-height:1">${chgStr}</div>
-              </div>
+              <span class="src-label-txt">${s}</span>
+              <span style="font-family:var(--mono);font-size:9px;color:${chgColor};white-space:nowrap">${chgStr}</span>
             </div>
             <div class="src-inputs">
               <input type="number" class="src-input" inputmode="decimal"
