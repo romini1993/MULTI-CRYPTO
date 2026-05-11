@@ -549,13 +549,21 @@
       flex-wrap: wrap;
       gap: 5px;
       overflow: hidden;
-      max-height: 180px;
+      max-height: 160px;
       transition: max-height 0.3s ease, opacity 0.3s ease;
       opacity: 1;
     }
     .backup-row.hidden {
       max-height: 0;
       opacity: 0;
+    }
+    .bk-btn-sync-pair {
+      flex: 1 1 100%;
+      display: flex;
+      gap: 5px;
+    }
+    .bk-btn-sync-pair .bk-btn-sync {
+      flex: 1;
     }
     .bk-btn {
       flex: 1 1 calc(50% - 2.5px);
@@ -945,9 +953,11 @@
         <button class="add-main-btn" onclick="handleGlobalAdd()">+</button>
       </div>
       <div class="backup-row" id="backup-row">
-        <button class="bk-btn bk-btn-sync bk-btn-full" onclick="syncPush()">☁️ Simpan ke Cloud</button>
-        <button class="bk-btn bk-btn-sync bk-btn-full" onclick="syncPull()">🔄 Ambil dari Cloud</button>
-        <div id="sync-status-mob" class="sync-status"></div>
+        <div class="bk-btn-sync-pair">
+          <button class="bk-btn bk-btn-sync" onclick="syncPush()">☁️ Simpan</button>
+          <button class="bk-btn bk-btn-sync" onclick="syncPull()">🔄 Ambil</button>
+        </div>
+        <div id="sync-status-mob" class="sync-status" style="width:100%;text-align:center"></div>
         <button class="bk-btn" onclick="openBackupPopup()">📤 Backup</button>
         <button class="bk-btn" onclick="confirmModal('RESTORE DATA?','ok',()=>openFilePicker('restore'))">🔄 Restore</button>
         <button class="bk-btn" onclick="openExcelPopup()">📊 CSV</button>
