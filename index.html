@@ -745,12 +745,19 @@
         justify-content: space-between;
       }
       .sidebar-brand span { color: var(--accent); }
-      .sidebar-brand-sub {
+      .sidebar-brand .kurs-badge {
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        padding: 5px 10px;
+      }
+
+      .sidebar-stats-label {
         font-family: var(--mono);
         font-size: 9px;
+        letter-spacing: 0.12em;
         color: var(--muted);
-        letter-spacing: 0.1em;
-        font-weight: 400;
+        text-transform: uppercase;
+        margin-bottom: -6px;
       }
 
       /* Summary card desktop — lebih besar, lebih web */
@@ -782,23 +789,26 @@
         background: rgba(255,255,255,0.03);
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 10px 12px;
+        padding: 8px 10px;
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 3px;
+        min-width: 0;
       }
       .stat-label {
         font-family: var(--mono);
-        font-size: 9px;
-        letter-spacing: 0.1em;
-        color: var(--muted);
-        text-transform: uppercase;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .stat-val {
         font-family: var(--mono);
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--text);
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--muted);
       }
       .stat-val.green { color: var(--green); }
       .stat-val.red { color: var(--red); }
@@ -947,9 +957,8 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <span>PORTO</span>
-      <span class="sidebar-brand-sub">PORTFOLIO TRACKER</span>
+      <div id="kurs-live-desk" class="kurs-badge">USD/IDR: ...</div>
     </div>
-    <div id="kurs-live-desk" class="kurs-badge" style="text-align:center">USD/IDR: ...</div>
 
     <!-- summary -->
     <div class="summary-card">
@@ -963,20 +972,12 @@
       </div>
     </div>
 
-    <!-- stats mini -->
-    <div class="sidebar-stats">
-      <div class="stat-box">
-        <div class="stat-label">Exchange</div>
-        <div class="stat-val" id="stat-exchange-count">0</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Koin</div>
-        <div class="stat-val" id="stat-coin-count">0</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">Top Gainer</div>
-        <div class="stat-val green" id="stat-top-gainer">-</div>
-      </div>
+    <!-- stats mini: 3 top gainers -->
+    <div class="sidebar-stats-label">🔥 Top Gainer</div>
+    <div class="sidebar-stats" id="sidebar-top-gainers">
+      <div class="stat-box"><div class="stat-label">-</div><div class="stat-val">-</div></div>
+      <div class="stat-box"><div class="stat-label">-</div><div class="stat-val">-</div></div>
+      <div class="stat-box"><div class="stat-label">-</div><div class="stat-val">-</div></div>
     </div>
 
     <!-- tabs -->
@@ -1011,8 +1012,8 @@
     <!-- backup -->
     <div class="backup-area">
       <div class="sync-pair-desk">
-        <button class="bk-btn bk-btn-sync" onclick="syncPush()">☁️ Simpan ke Cloud</button>
-        <button class="bk-btn bk-btn-sync" onclick="syncPull()">📥 Ambil dari Cloud</button>
+        <button class="bk-btn bk-btn-sync" onclick="syncPushWithPin()">☁️ Simpan ke Cloud</button>
+        <button class="bk-btn bk-btn-sync" onclick="syncPullWithConfirm()">📥 Ambil dari Cloud</button>
       </div>
       <div id="sync-status-desk" class="sync-status"></div>
       <button class="bk-btn" onclick="openBackupPopup()">📤 Backup Lokal</button>
@@ -1079,8 +1080,8 @@
       </div>
       <div class="backup-row" id="backup-row">
         <div class="bk-btn-sync-pair">
-          <button class="bk-btn bk-btn-sync" onclick="syncPush()">☁️ Simpan ke Cloud</button>
-          <button class="bk-btn bk-btn-sync" onclick="syncPull()">📥 Ambil dari Cloud</button>
+          <button class="bk-btn bk-btn-sync" onclick="syncPushWithPin()">☁️ Simpan ke Cloud</button>
+          <button class="bk-btn bk-btn-sync" onclick="syncPullWithConfirm()">📥 Ambil dari Cloud</button>
         </div>
         <div id="sync-status-mob" class="sync-status" style="width:100%;text-align:center"></div>
         <button class="bk-btn" onclick="openBackupPopup()">📤 Backup</button>
@@ -1099,6 +1100,7 @@
 //  SYNC — Google Apps Script
 // ══════════════════════════════
 const SYNC_URL = 'https://script.google.com/macros/s/AKfycby2sWFj_-Altg7u7OcxWT-CxdMJzJhzJlOvhIK3QDt00dGUpklVrgZPXB-BZxAdmFKMjA/exec';
+const SYNC_PIN = 'SATRIA';
 
 function setSyncStatus(msg, type) {
   ['sync-status-desk','sync-status-mob'].forEach(id => {
@@ -1107,6 +1109,49 @@ function setSyncStatus(msg, type) {
     el.innerText = msg;
     el.className = 'sync-status ' + (type || '');
   });
+}
+
+// Simpan ke cloud — pakai PIN
+function syncPushWithPin() {
+  const overlay = document.getElementById('modal-overlay');
+  const inp = document.getElementById('modal-input');
+  document.getElementById('modal-title').innerText = '🔐 MASUKKAN SANDI';
+  inp.style.display = 'block';
+  inp.type = 'password';
+  inp.value = '';
+  inp.placeholder = 'Sandi...';
+  document.getElementById('modal-btns').innerHTML = `
+    <button class="modal-btn mb-ok" id="btn-pin-ok">SIMPAN</button>
+    <button class="modal-btn mb-cancel" onclick="closeModal();document.getElementById('modal-input').type='text'">BATAL</button>`;
+  document.getElementById('btn-pin-ok').onclick = () => {
+    if (inp.value.toUpperCase() === SYNC_PIN) {
+      inp.type = 'text'; closeModal(); syncPush();
+    } else {
+      inp.value = '';
+      inp.placeholder = '❌ Sandi salah, coba lagi';
+      inp.style.borderColor = 'var(--red)';
+      setTimeout(() => { inp.style.borderColor = ''; inp.placeholder = 'Sandi...'; }, 1500);
+    }
+  };
+  inp.onkeypress = (e) => { if (e.key === 'Enter') document.getElementById('btn-pin-ok')?.click(); };
+  overlay.classList.add('active');
+  setTimeout(() => inp.focus(), 200);
+}
+
+// Ambil dari cloud — pakai confirm peringatan
+function syncPullWithConfirm() {
+  const overlay = document.getElementById('modal-overlay');
+  const inp = document.getElementById('modal-input');
+  document.getElementById('modal-title').innerText = '⚠️ AMBIL DATA DARI CLOUD?';
+  inp.style.display = 'none';
+  document.getElementById('modal-btns').innerHTML = `
+    <div style="width:100%;text-align:center;font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">
+      Data lokal akan diganti dengan data dari cloud.<br>Pastikan data cloud sudah tersimpan dengan benar.
+    </div>
+    <button class="modal-btn mb-ok" id="btn-pull-ok">AMBIL SEKARANG</button>
+    <button class="modal-btn mb-cancel" onclick="closeModal()">BATAL</button>`;
+  document.getElementById('btn-pull-ok').onclick = () => { closeModal(); syncPull(); };
+  overlay.classList.add('active');
 }
 
 async function syncPush() {
@@ -1510,17 +1555,22 @@ function updatePricesOnly() {
     if(el) el.innerText = `${cnt} ${label}`;
   });
 
-  // stat boxes desktop
-  const sc = document.getElementById('stat-exchange-count');
-  const sk = document.getElementById('stat-coin-count');
-  const sg = document.getElementById('stat-top-gainer');
-  if(sc) sc.innerText = allExchanges.length;
-  if(sk) sk.innerText = watchlist.length;
-  if(sg) {
-    let top = null, topVal = -Infinity;
-    watchlist.forEach(s => { const c = parseFloat(changes[s]||0); if(c > topVal) { topVal = c; top = s; } });
-    sg.innerText = top ? `${top} ${topVal >= 0 ? '+' : ''}${topVal.toFixed(1)}%` : '-';
-    sg.className = 'stat-val ' + (topVal >= 0 ? 'green' : 'red');
+  // stat boxes desktop — 3 top gainers
+  const gainersEl = document.getElementById('sidebar-top-gainers');
+  if (gainersEl) {
+    const ranked = watchlist
+      .filter(s => changes[s] !== undefined)
+      .map(s => ({ sym: s, chg: parseFloat(changes[s] || 0) }))
+      .sort((a, b) => b.chg - a.chg)
+      .slice(0, 3);
+    gainersEl.innerHTML = ranked.length ? ranked.map(g => `
+      <div class="stat-box">
+        <div class="stat-label">${g.sym}</div>
+        <div class="stat-val ${g.chg >= 0 ? 'green' : 'red'}">${g.chg >= 0 ? '+' : ''}${g.chg.toFixed(2)}%</div>
+      </div>`).join('') :
+      `<div class="stat-box"><div class="stat-label">-</div><div class="stat-val">-</div></div>
+       <div class="stat-box"><div class="stat-label">-</div><div class="stat-val">-</div></div>
+       <div class="stat-box"><div class="stat-label">-</div><div class="stat-val">-</div></div>`;
   }
 }
 
