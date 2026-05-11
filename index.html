@@ -565,6 +565,22 @@
     .bk-btn-sync-pair .bk-btn-sync {
       flex: 1;
     }
+    .sync-status {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      width: 100%;
+      transition: color 0.3s;
+      padding: 0;
+      margin: -2px 0 0 0;
+      min-height: 0;
+      line-height: 1.2;
+    }
+    .sync-status:empty { display: none; }
+    .sync-status.ok { color: var(--green); }
+    .sync-status.err { color: var(--red); }
+    .sync-status.loading { color: var(--accent); }
     .bk-btn {
       flex: 1 1 calc(50% - 2.5px);
       background: rgba(255,255,255,0.04);
@@ -691,7 +707,7 @@
 
     /* DESKTOP / LANDSCAPE */
     @media (min-width: 700px) {
-      :root { --sidebar-w: 340px; }
+      :root { --sidebar-w: 360px; }
 
       .app-shell {
         flex-direction: row;
@@ -710,29 +726,41 @@
         border-right: 1px solid var(--border);
         display: flex;
         flex-direction: column;
-        padding: 24px 20px;
-        gap: 16px;
+        padding: 24px 22px;
+        gap: 14px;
       }
       .sidebar::-webkit-scrollbar { width: 4px; }
       .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
 
       .sidebar-brand {
         font-family: var(--mono);
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 700;
         color: var(--accent);
-        letter-spacing: 0.14em;
+        letter-spacing: 0.16em;
         padding-bottom: 16px;
         border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
       }
       .sidebar-brand span { color: var(--accent); }
+      .sidebar-brand-sub {
+        font-family: var(--mono);
+        font-size: 9px;
+        color: var(--muted);
+        letter-spacing: 0.1em;
+        font-weight: 400;
+      }
 
+      /* Summary card desktop — lebih besar, lebih web */
       .sidebar .summary-card {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
-        padding: 18px 20px;
+        gap: 12px;
+        padding: 20px 22px;
         margin: 0;
+        border-radius: 18px;
       }
       .sidebar .summary-card .summary-right {
         width: 100%;
@@ -740,15 +768,51 @@
         justify-content: space-between;
         align-items: center;
       }
-      .sidebar .summary-idr { font-size: 28px; }
+      .sidebar .summary-idr { font-size: 30px; }
       .sidebar .summary-usd { font-size: 13px; }
-      .sidebar .summary-label { font-size: 10px; }
+      .sidebar .summary-label { font-size: 10px; letter-spacing: 0.16em; }
 
-      .sidebar .kurs-badge { align-self: flex-end; }
+      /* Stats mini row di bawah summary */
+      .sidebar-stats {
+        display: flex;
+        gap: 8px;
+      }
+      .stat-box {
+        flex: 1;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .stat-label {
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+      .stat-val {
+        font-family: var(--mono);
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .stat-val.green { color: var(--green); }
+      .stat-val.red { color: var(--red); }
+
+      .sidebar .kurs-badge {
+        align-self: stretch;
+        text-align: center;
+        padding: 8px;
+        font-size: 11px;
+      }
 
       .sidebar .tab-row { margin-bottom: 0; }
 
-      /* FIX: filter input lebar sesuai sidebar, tidak melar */
+      /* FIX: filter input lebar sesuai sidebar */
       .sidebar .filter-input {
         margin-bottom: 0;
         width: 100%;
@@ -757,10 +821,12 @@
         box-sizing: border-box;
         flex: none;
         display: block;
+        padding: 10px 14px;
+        font-size: 13px;
       }
 
       .sidebar .sort-row { flex-direction: column; gap: 8px; }
-      .sidebar .ctrl-select { font-size: 12px; padding: 8px 10px; }
+      .sidebar .ctrl-select { font-size: 12px; padding: 9px 12px; }
 
       .sidebar .backup-area {
         margin-top: auto;
@@ -770,6 +836,14 @@
         flex-direction: column;
         gap: 6px;
       }
+
+      /* Sync tombol di desktop — satu baris */
+      .sidebar .sync-pair-desk {
+        display: flex;
+        gap: 6px;
+      }
+      .sidebar .sync-pair-desk .bk-btn-sync { flex: 1; padding: 9px 6px; }
+
       .sidebar .add-row { flex-direction: column; gap: 8px; }
       .sidebar .add-main-btn { padding: 11px; font-size: 14px; }
 
@@ -782,10 +856,37 @@
       .main-content {
         flex: 1;
         overflow-y: auto;
-        padding: 20px;
+        padding: 28px 28px 40px;
+        background: var(--bg);
       }
       .main-content::-webkit-scrollbar { width: 5px; }
       .main-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 4px; }
+
+      /* Header di main content desktop */
+      .desktop-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+      }
+      .desktop-header-title {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+      .desktop-header-count {
+        font-family: var(--mono);
+        font-size: 11px;
+        color: var(--accent);
+        background: var(--accent-glow);
+        border: 1px solid var(--accent-border);
+        border-radius: 6px;
+        padding: 4px 10px;
+      }
 
       /* Desktop: nama item tidak terpotong */
       .item-name {
@@ -796,8 +897,11 @@
 
       #main-list {
         padding: 0;
-        max-width: 900px;
+        max-width: 860px;
         margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
       }
     }
 
@@ -841,7 +945,10 @@
 
   <!-- ═══════ SIDEBAR (desktop only) ═══════ -->
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand">PORT<span>O</span></div>
+    <div class="sidebar-brand">
+      <span>PORTO</span>
+      <span class="sidebar-brand-sub">PORTFOLIO TRACKER</span>
+    </div>
     <div id="kurs-live-desk" class="kurs-badge" style="text-align:center">USD/IDR: ...</div>
 
     <!-- summary -->
@@ -853,6 +960,22 @@
       </div>
       <div class="summary-right">
         <div id="asset-count-badge-desk" class="asset-count">0 exchange</div>
+      </div>
+    </div>
+
+    <!-- stats mini -->
+    <div class="sidebar-stats">
+      <div class="stat-box">
+        <div class="stat-label">Exchange</div>
+        <div class="stat-val" id="stat-exchange-count">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Koin</div>
+        <div class="stat-val" id="stat-coin-count">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Top Gainer</div>
+        <div class="stat-val green" id="stat-top-gainer">-</div>
       </div>
     </div>
 
@@ -868,14 +991,14 @@
     <!-- sort -->
     <div class="sort-row">
       <select id="sort-order-desk" class="ctrl-select" onchange="updateSettings('desk')">
-        <option value="manual">Default</option>
-        <option value="name">A-Z</option>
-        <option value="value">Terbesar</option>
-        <option value="gainers">Gainers</option>
+        <option value="manual">Urutan: Default</option>
+        <option value="name">Urutan: A-Z</option>
+        <option value="value">Urutan: Terbesar</option>
+        <option value="gainers">Urutan: Gainers</option>
       </select>
       <select id="currency-view-desk" class="ctrl-select" onchange="updateSettings('desk')">
-        <option value="IDR">IDR</option>
-        <option value="USD">USD</option>
+        <option value="IDR">Mata Uang: IDR</option>
+        <option value="USD">Mata Uang: USD</option>
       </select>
     </div>
 
@@ -887,14 +1010,16 @@
 
     <!-- backup -->
     <div class="backup-area">
-      <button class="bk-btn bk-btn-sync bk-btn-full" onclick="syncPush()">☁️ Simpan ke Cloud</button>
-      <button class="bk-btn bk-btn-sync bk-btn-full" onclick="syncPull()">🔄 Ambil dari Cloud</button>
+      <div class="sync-pair-desk">
+        <button class="bk-btn bk-btn-sync" onclick="syncPush()">☁️ Simpan ke Cloud</button>
+        <button class="bk-btn bk-btn-sync" onclick="syncPull()">📥 Ambil dari Cloud</button>
+      </div>
       <div id="sync-status-desk" class="sync-status"></div>
       <button class="bk-btn" onclick="openBackupPopup()">📤 Backup Lokal</button>
       <button class="bk-btn" onclick="confirmModal('RESTORE DATA?','ok',()=>openFilePicker('restore'))">🔄 Restore Lokal</button>
       <button class="bk-btn" onclick="openExcelPopup()">📊 Export CSV</button>
       <button class="bk-btn bk-btn-full" onclick="confirmModal('IMPORT DAN GABUNG?','ok',()=>openFilePicker('import'))">📥 Import & Gabung</button>
-      <button class="bk-btn bk-btn-danger" onclick="confirmModal('RESET SEMUA DATA?','delete',()=>resetApp())">⚠️ Reset</button>
+      <button class="bk-btn bk-btn-danger" onclick="confirmModal('RESET SEMUA DATA?','delete',()=>resetApp())">⚠️ Reset Semua Data</button>
     </div>
   </aside>
 
@@ -954,8 +1079,8 @@
       </div>
       <div class="backup-row" id="backup-row">
         <div class="bk-btn-sync-pair">
-          <button class="bk-btn bk-btn-sync" onclick="syncPush()">☁️ Simpan</button>
-          <button class="bk-btn bk-btn-sync" onclick="syncPull()">🔄 Ambil</button>
+          <button class="bk-btn bk-btn-sync" onclick="syncPush()">☁️ Simpan ke Cloud</button>
+          <button class="bk-btn bk-btn-sync" onclick="syncPull()">📥 Ambil dari Cloud</button>
         </div>
         <div id="sync-status-mob" class="sync-status" style="width:100%;text-align:center"></div>
         <button class="bk-btn" onclick="openBackupPopup()">📤 Backup</button>
@@ -1384,6 +1509,19 @@ function updatePricesOnly() {
     const el = document.getElementById(id);
     if(el) el.innerText = `${cnt} ${label}`;
   });
+
+  // stat boxes desktop
+  const sc = document.getElementById('stat-exchange-count');
+  const sk = document.getElementById('stat-coin-count');
+  const sg = document.getElementById('stat-top-gainer');
+  if(sc) sc.innerText = allExchanges.length;
+  if(sk) sk.innerText = watchlist.length;
+  if(sg) {
+    let top = null, topVal = -Infinity;
+    watchlist.forEach(s => { const c = parseFloat(changes[s]||0); if(c > topVal) { topVal = c; top = s; } });
+    sg.innerText = top ? `${top} ${topVal >= 0 ? '+' : ''}${topVal.toFixed(1)}%` : '-';
+    sg.className = 'stat-val ' + (topVal >= 0 ? 'green' : 'red');
+  }
 }
 
 // ══════════════════════════════
