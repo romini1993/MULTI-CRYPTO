@@ -190,9 +190,6 @@
     }
     .filter-input {
       flex: 1;
-      width: 100%;
-      min-width: 0;
-      box-sizing: border-box;
       background: rgba(255,255,255,0.04);
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -574,6 +571,21 @@
     .bk-btn:hover { border-color: var(--bh); color: var(--text); }
     .bk-btn-full { flex: 1 1 100% !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
     .bk-btn-danger { color: var(--red) !important; border-color: rgba(240,93,110,0.3) !important; }
+    .bk-btn-sync { color: var(--green) !important; border-color: rgba(34,211,160,0.35) !important; background: rgba(34,211,160,0.06) !important; }
+    .bk-btn-sync:hover { background: rgba(34,211,160,0.14) !important; }
+    .bk-btn-sync:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .sync-status {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      min-height: 14px;
+      transition: color 0.3s;
+    }
+    .sync-status.ok { color: var(--green); }
+    .sync-status.err { color: var(--red); }
+    .sync-status.loading { color: var(--accent); }
 
     /* MODAL */
     .modal-overlay {
@@ -667,8 +679,6 @@
 
     /* DESKTOP / LANDSCAPE */
     @media (min-width: 700px) {
-      :root { --sidebar-w: 340px; }
-
       .app-shell {
         flex-direction: row;
         min-height: 100vh;
@@ -686,19 +696,19 @@
         border-right: 1px solid var(--border);
         display: flex;
         flex-direction: column;
-        padding: 24px 20px;
-        gap: 16px;
+        padding: 20px 16px;
+        gap: 14px;
       }
       .sidebar::-webkit-scrollbar { width: 4px; }
       .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 4px; }
 
       .sidebar-brand {
         font-family: var(--mono);
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 700;
         color: var(--accent);
         letter-spacing: 0.14em;
-        padding-bottom: 16px;
+        padding-bottom: 14px;
         border-bottom: 1px solid var(--border);
       }
       .sidebar-brand span { color: var(--accent); }
@@ -706,48 +716,26 @@
       .sidebar .summary-card {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
-        padding: 18px 20px;
-        margin: 0;
+        gap: 8px;
       }
-      .sidebar .summary-card .summary-right {
-        width: 100%;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .sidebar .summary-idr { font-size: 28px; }
-      .sidebar .summary-usd { font-size: 13px; }
-      .sidebar .summary-label { font-size: 10px; }
+      .sidebar .summary-idr { font-size: 20px; }
 
       .sidebar .kurs-badge { align-self: flex-end; }
 
       .sidebar .tab-row { margin-bottom: 0; }
-
-      /* FIX: filter input lebar sesuai sidebar, tidak melar */
-      .sidebar .filter-input {
-        margin-bottom: 0;
-        width: 100%;
-        min-width: 0;
-        max-width: 100%;
-        box-sizing: border-box;
-        flex: none;
-        display: block;
-      }
-
-      .sidebar .sort-row { flex-direction: column; gap: 8px; }
-      .sidebar .ctrl-select { font-size: 12px; padding: 8px 10px; }
+      .sidebar .filter-input { margin-bottom: 0; }
+      .sidebar .sort-row { flex-direction: column; }
 
       .sidebar .backup-area {
         margin-top: auto;
-        padding-top: 16px;
+        padding-top: 14px;
         border-top: 1px solid var(--border);
         display: flex;
         flex-direction: column;
         gap: 6px;
       }
-      .sidebar .add-row { flex-direction: column; gap: 8px; }
-      .sidebar .add-main-btn { padding: 11px; font-size: 14px; }
+      .sidebar .add-row { flex-direction: column; }
+      .sidebar .add-main-btn { padding: 10px; }
 
       /* Hide mobile sticky elements */
       .top-bar { display: none; }
@@ -827,9 +815,6 @@
         <div id="total-idr-desk" class="summary-idr">Rp 0</div>
         <div id="total-usd-desk" class="summary-usd">$0.00</div>
       </div>
-      <div class="summary-right">
-        <div id="asset-count-badge-desk" class="asset-count">0 exchange</div>
-      </div>
     </div>
 
     <!-- tabs -->
@@ -863,8 +848,11 @@
 
     <!-- backup -->
     <div class="backup-area">
-      <button class="bk-btn" onclick="openBackupPopup()">📤 Backup</button>
-      <button class="bk-btn" onclick="confirmModal('RESTORE DATA?','ok',()=>openFilePicker('restore'))">🔄 Restore</button>
+      <button class="bk-btn bk-btn-sync" onclick="syncPush()">☁️ Simpan ke Cloud</button>
+      <button class="bk-btn bk-btn-sync" onclick="syncPull()">📥 Ambil dari Cloud</button>
+      <div id="sync-status-desk" class="sync-status"></div>
+      <button class="bk-btn" onclick="openBackupPopup()">📤 Backup Lokal</button>
+      <button class="bk-btn" onclick="confirmModal('RESTORE DATA?','ok',()=>openFilePicker('restore'))">🔄 Restore Lokal</button>
       <button class="bk-btn" onclick="openExcelPopup()">📊 Export CSV</button>
       <button class="bk-btn bk-btn-full" onclick="confirmModal('IMPORT DAN GABUNG?','ok',()=>openFilePicker('import'))">📥 Import & Gabung</button>
       <button class="bk-btn bk-btn-danger" onclick="confirmModal('RESET SEMUA DATA?','delete',()=>resetApp())">⚠️ Reset</button>
@@ -926,6 +914,9 @@
         <button class="add-main-btn" onclick="handleGlobalAdd()">+</button>
       </div>
       <div class="backup-row" id="backup-row">
+        <button class="bk-btn bk-btn-sync bk-btn-full" onclick="syncPush()">☁️ Simpan ke Cloud</button>
+        <button class="bk-btn bk-btn-sync bk-btn-full" onclick="syncPull()">📥 Ambil dari Cloud</button>
+        <div id="sync-status-mob" class="sync-status" style="width:100%;text-align:center"></div>
         <button class="bk-btn" onclick="openBackupPopup()">📤 Backup</button>
         <button class="bk-btn" onclick="confirmModal('RESTORE DATA?','ok',()=>openFilePicker('restore'))">🔄 Restore</button>
         <button class="bk-btn" onclick="openExcelPopup()">📊 CSV</button>
@@ -939,8 +930,79 @@
 
 <script>
 // ══════════════════════════════
-//  MODAL
+//  SYNC — Google Apps Script
 // ══════════════════════════════
+const SYNC_URL = 'https://script.google.com/macros/s/AKfycby2sWFj_-Altg7u7OcxWT-CxdMJzJhzJlOvhIK3QDt00dGUpklVrgZPXB-BZxAdmFKMjA/exec';
+
+function setSyncStatus(msg, type) {
+  ['sync-status-desk','sync-status-mob'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerText = msg;
+    el.className = 'sync-status ' + (type || '');
+  });
+}
+
+async function syncPush() {
+  setSyncStatus('⏳ Menyimpan ke cloud...', 'loading');
+  document.querySelectorAll('.bk-btn-sync').forEach(b => b.disabled = true);
+  try {
+    const payload = {
+      assets: watchlist,
+      balances: balances,
+      sources: coinSources,
+      exchanges: allExchanges
+    };
+    const res = await fetch(SYNC_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const json = await res.json();
+    if (json.status === 'ok') {
+      setSyncStatus('✅ Tersimpan: ' + new Date().toLocaleTimeString('id-ID'), 'ok');
+      showToast('✅ Data berhasil disimpan ke cloud!');
+    } else {
+      throw new Error(json.message || 'Unknown error');
+    }
+  } catch (err) {
+    setSyncStatus('❌ Gagal: ' + err.message, 'err');
+    showToast('❌ Gagal simpan ke cloud!');
+  }
+  document.querySelectorAll('.bk-btn-sync').forEach(b => b.disabled = false);
+}
+
+async function syncPull() {
+  setSyncStatus('⏳ Mengambil data dari cloud...', 'loading');
+  document.querySelectorAll('.bk-btn-sync').forEach(b => b.disabled = true);
+  try {
+    const res = await fetch(SYNC_URL + '?t=' + Date.now());
+    const json = await res.json();
+    if (json.status === 'ok' && json.data) {
+      const d = json.data;
+      watchlist  = d.assets    || [];
+      balances   = d.balances  || {};
+      coinSources= d.sources   || {};
+      allExchanges= d.exchanges || [];
+      migrateToUppercase();
+      saveAll();
+      renderList();
+      fetchAll();
+      setSyncStatus('✅ Diperbarui: ' + (json.lastUpdate || new Date().toLocaleTimeString('id-ID')), 'ok');
+      showToast('✅ Data berhasil diambil dari cloud!');
+    } else if (json.status === 'empty') {
+      setSyncStatus('⚠️ Cloud masih kosong', 'err');
+      showToast('⚠️ Belum ada data di cloud. Simpan dulu!');
+    } else {
+      throw new Error(json.message || 'Unknown error');
+    }
+  } catch (err) {
+    setSyncStatus('❌ Gagal: ' + err.message, 'err');
+    showToast('❌ Gagal ambil data dari cloud!');
+  }
+  document.querySelectorAll('.bk-btn-sync').forEach(b => b.disabled = false);
+}
+
+
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('active');
   document.getElementById('modal-input').style.display = 'none';
@@ -1288,11 +1350,8 @@ function updatePricesOnly() {
 
   // asset count badge
   const cnt = currentTab === 'exchange' ? allExchanges.length : watchlist.length;
-  const label = currentTab === 'exchange' ? 'exchange' : 'aset';
-  ['asset-count-badge', 'asset-count-badge-desk'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.innerText = `${cnt} ${label}`;
-  });
+  const badge = document.getElementById('asset-count-badge');
+  if(badge) badge.innerText = `${cnt} aset`;
 }
 
 // ══════════════════════════════
@@ -1443,13 +1502,11 @@ function renderList() {
         const stk = (typeof d === 'object') ? parseFloat(d.staking||0) : 0;
         const usdEst = (amt + stk) * p;
         const estStr = (amt + stk) > 0 ? `~${fmtUSD(usdEst)}` : '';
-        const srcPrefix = src.split(' ')[0];
-        const srcLogo = exchangeLogos[srcPrefix] || exchangeLogos[src] || '';
         return `
           <div class="source-row">
             <div class="src-label">
               <div class="src-label-logo">
-                ${srcLogo ? `<img src="${srcLogo}" onerror="this.parentElement.innerHTML='<div class=\\'logo-initial\\'>${srcPrefix.substring(0,2)}</div>'">` : `<div class="logo-initial" style="font-size:8px">${srcPrefix.substring(0,2)}</div>`}
+                ${exchangeLogos[src] ? `<img src="${exchangeLogos[src]}" onerror="this.parentElement.innerHTML='<div class=\\'logo-initial\\'>${src.substring(0,2)}</div>'">` : `<div class="logo-initial" style="font-size:8px">${src.substring(0,2)}</div>`}
               </div>
               <span class="src-label-txt">${src}</span>
             </div>
