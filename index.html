@@ -1450,6 +1450,8 @@ function filterCoinSearch() {
 
 function pickCoinFromSearch(id, name, sym) {
   const symU = sym.toUpperCase();
+  // Simpan target SEBELUM closeCoinSearch() karena closeCoinSearch set coinSearchTarget = null
+  const target = coinSearchTarget;
   closeCoinSearch();
 
   if (!watchlist.includes(symU)) {
@@ -1458,8 +1460,8 @@ function pickCoinFromSearch(id, name, sym) {
     coinMapCG[symU] = id;
   }
 
-  if (coinSearchTarget?.type === 'exchange' && coinSearchTarget.exchange) {
-    const ex = coinSearchTarget.exchange;
+  if (target?.type === 'exchange' && target.exchange) {
+    const ex = target.exchange;
     if (!coinSources[symU].includes(ex)) coinSources[symU].push(ex);
     if (!allExchanges.includes(ex)) allExchanges.push(ex);
     // Pastikan exchange tetap ter-expand setelah renderList
