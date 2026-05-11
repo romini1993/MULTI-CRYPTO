@@ -1427,7 +1427,7 @@ function filterCoinSearch() {
   const targetEx = coinSearchTarget?.exchange;
   const alreadyInTarget = targetEx
     ? new Set(watchlist.filter(s => coinSources[s]?.includes(targetEx)))
-    : new Set(); // kalau global, ga ada yang dikunci
+    : new Set(watchlist); // kalau global, semua koin di watchlist sudah ada
 
   box.innerHTML = hits.map(c => {
     const symU = c.symbol.toUpperCase();
@@ -1462,6 +1462,8 @@ function pickCoinFromSearch(id, name, sym) {
     const ex = coinSearchTarget.exchange;
     if (!coinSources[symU].includes(ex)) coinSources[symU].push(ex);
     if (!allExchanges.includes(ex)) allExchanges.push(ex);
+    // Pastikan exchange tetap ter-expand setelah renderList
+    expandedItem = ex;
   }
 
   saveAll(); renderList(); fetchAll();
