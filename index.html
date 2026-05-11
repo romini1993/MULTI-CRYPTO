@@ -1070,6 +1070,108 @@
       font-family: var(--mono);
       font-size: 12px;
     }
+    /* EXCHANGE SEARCH MODAL */
+    .ex-search-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(6px);
+      z-index: 3500;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .ex-search-overlay.active { display: flex; }
+    .ex-search-box {
+      width: 100%;
+      max-width: 380px;
+      background: var(--card2);
+      border: 1px solid var(--accent-border);
+      border-radius: 20px;
+      padding: 22px 20px 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transform: scale(0.93);
+      transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .ex-search-overlay.active .ex-search-box { transform: scale(1); }
+    .ex-search-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-align: center;
+    }
+    .ex-search-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--accent-border);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      outline: none;
+      text-transform: uppercase;
+    }
+    .ex-search-input::placeholder { color: var(--muted); font-size: 13px; text-transform: none; }
+    .ex-search-results {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 220px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .ex-search-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .ex-search-item:hover { background: var(--surface); border-color: var(--border); }
+    .ex-search-item.new-entry {
+      border-color: rgba(124,106,247,0.3);
+      background: var(--accent-glow);
+      color: var(--accent);
+    }
+    .ex-search-item-logo {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; flex-shrink: 0;
+    }
+    .ex-search-item-logo img { width: 100%; height: 100%; object-fit: cover; }
+    .ex-search-item-logo-txt { font-family: var(--mono); font-size: 8px; font-weight: 700; color: var(--accent); }
+    .ex-search-item-name { font-size: 13px; font-weight: 600; }
+    .ex-search-item-sub { font-size: 11px; color: var(--muted); }
+    .ex-search-cancel {
+      width: 100%;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--sans);
+      font-size: 13px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .ex-search-cancel:hover { border-color: var(--bh); color: var(--text); }
+
+    /* ADD EXCHANGE MODAL - simple input */
+    .add-ex-modal { gap: 14px; }
   </style>
 </head>
 <body>
@@ -1092,6 +1194,18 @@
       <div class="coin-search-loading">Memuat daftar koin...</div>
     </div>
     <button class="coin-search-cancel" onclick="closeCoinSearch()">Batal</button>
+  </div>
+</div>
+
+<!-- EXCHANGE SEARCH MODAL (untuk tambah source di coin expand) -->
+<div id="ex-search-overlay" class="ex-search-overlay" onclick="closeExSearch()">
+  <div class="ex-search-box" onclick="event.stopPropagation()">
+    <div class="ex-search-title">Tambah ke Exchange</div>
+    <input type="text" id="ex-search-input" class="ex-search-input"
+      placeholder="Ketik nama exchange..."
+      oninput="filterExSearch()" autocomplete="off">
+    <div class="ex-search-results" id="ex-search-results"></div>
+    <button class="ex-search-cancel" onclick="closeExSearch()">Batal</button>
   </div>
 </div>
 
@@ -1150,10 +1264,9 @@
       </select>
     </div>
 
-    <!-- add -->
+    <!-- add — satu tombol dinamis -->
     <div class="add-row">
-      <input type="text" class="add-input" id="add-input-desk" placeholder="Tambah Baru..." onkeypress="if(event.key==='Enter') handleGlobalAdd()">
-      <button class="add-main-btn" onclick="handleGlobalAdd()">+ Tambah</button>
+      <button class="add-main-btn" style="width:100%;padding:11px" id="global-add-btn-desk" onclick="handleGlobalAdd()">+ Tambah Exchange</button>
     </div>
 
     <!-- backup -->
@@ -1222,8 +1335,7 @@
     <!-- MOBILE: Bottom Bar -->
     <div class="bottom-bar">
       <div class="add-row">
-        <input type="text" class="add-input" id="global-add-input" placeholder="Tambah Exchange / Coin..." onkeypress="if(event.key==='Enter') handleGlobalAdd()">
-        <button class="add-main-btn" onclick="handleGlobalAdd()">+</button>
+        <button class="add-main-btn" style="width:100%;padding:11px" id="global-add-btn-mob" onclick="handleGlobalAdd()">+ Tambah Exchange</button>
       </div>
       <div class="backup-row" id="backup-row">
         <div class="bk-btn-sync-pair">
@@ -1279,7 +1391,6 @@ async function loadCGList() {
   try {
     const r = await fetch('https://api.coingecko.com/api/v3/coins/list?include_platform=false');
     cgList = await r.json();
-    // juga update coinMapCG
     cgList.forEach(c => { coinMapCG[c.symbol.toUpperCase()] = c.id; });
     filterCoinSearch();
   } catch {
@@ -1312,21 +1423,26 @@ function filterCoinSearch() {
     return;
   }
 
-  const existing = new Set(watchlist.map(s => s.toUpperCase()));
+  // "sudah ada" hanya kalau koin sudah ada DI EXCHANGE TARGET, bukan di watchlist global
+  const targetEx = coinSearchTarget?.exchange;
+  const alreadyInTarget = targetEx
+    ? new Set(watchlist.filter(s => coinSources[s]?.includes(targetEx)))
+    : new Set(); // kalau global, ga ada yang dikunci
+
   box.innerHTML = hits.map(c => {
     const symU = c.symbol.toUpperCase();
-    const isAdded = existing.has(symU);
+    const isAdded = alreadyInTarget.has(symU);
     const src = logoSrcs(c.symbol)[0];
-    const safeId = c.id.replace(/'/g,"\\'");
+    const safeId   = c.id.replace(/'/g,"\\'");
     const safeName = c.name.replace(/'/g,"\\'");
-    const safeSym = c.symbol.replace(/'/g,"\\'");
+    const safeSym  = c.symbol.replace(/'/g,"\\'");
     return `<div class="coin-search-item ${isAdded ? 'already' : ''}"
       onclick="${isAdded ? '' : `pickCoinFromSearch('${safeId}','${safeName}','${safeSym}')`}">
       <img class="coin-search-thumb" src="${src}"
-        onerror="this.src='';this.style.background='var(--surface)';this.style.display='none'">
+        onerror="this.src='';this.style.background='var(--surface)'">
       <div>
         <div class="coin-search-name">${c.name}</div>
-        <div class="coin-search-sym">${symU}${isAdded ? ' · sudah ada' : ''}</div>
+        <div class="coin-search-sym">${symU}${isAdded ? ' · sudah di exchange ini' : ''}</div>
       </div>
     </div>`;
   }).join('');
@@ -1344,15 +1460,88 @@ function pickCoinFromSearch(id, name, sym) {
 
   if (coinSearchTarget?.type === 'exchange' && coinSearchTarget.exchange) {
     const ex = coinSearchTarget.exchange;
-    if (!coinSources[symU].includes(ex)) {
-      coinSources[symU].push(ex);
-    }
+    if (!coinSources[symU].includes(ex)) coinSources[symU].push(ex);
     if (!allExchanges.includes(ex)) allExchanges.push(ex);
   }
 
-  saveAll();
-  renderList();
-  fetchAll();
+  saveAll(); renderList(); fetchAll();
+}
+
+// ══════════════════════════════
+//  EXCHANGE SEARCH MODAL
+// ══════════════════════════════
+let exSearchTarget = null; // sym koin yang mau ditambahin source-nya
+
+function openExSearch(sym) {
+  exSearchTarget = sym;
+  document.getElementById('ex-search-input').value = '';
+  filterExSearch();
+  document.getElementById('ex-search-overlay').classList.add('active');
+  setTimeout(() => document.getElementById('ex-search-input').focus(), 150);
+}
+
+function closeExSearch() {
+  document.getElementById('ex-search-overlay').classList.remove('active');
+  exSearchTarget = null;
+}
+
+function filterExSearch() {
+  const q = document.getElementById('ex-search-input').value.trim().toUpperCase();
+  const box = document.getElementById('ex-search-results');
+  const sym = exSearchTarget;
+
+  // Exchange yang sudah jadi source di koin ini
+  const alreadySource = new Set(coinSources[sym] || []);
+
+  // Filter dari allExchanges
+  const matched = allExchanges.filter(ex => !alreadySource.has(ex) && (q === '' || ex.includes(q)));
+
+  let html = matched.map(ex => {
+    const brand = ex.split(' ')[0];
+    const logo = exchangeLogos[brand] || '';
+    return `<div class="ex-search-item" onclick="pickExFromSearch('${ex}')">
+      <div class="ex-search-item-logo">
+        ${logo
+          ? `<img src="${logo}" onerror="this.parentElement.innerHTML='<span class=ex-search-item-logo-txt>${brand.substring(0,2)}</span>'">`
+          : `<span class="ex-search-item-logo-txt">${brand.substring(0,2)}</span>`}
+      </div>
+      <div>
+        <div class="ex-search-item-name">${ex}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Opsi buat baru kalau ada teks dan belum ada yang exact match
+  if (q && !allExchanges.includes(q) && !alreadySource.has(q)) {
+    html += `<div class="ex-search-item new-entry" onclick="pickExFromSearch('${q}')">
+      <div class="ex-search-item-logo"><span class="ex-search-item-logo-txt">+</span></div>
+      <div>
+        <div class="ex-search-item-name">Buat baru: "${q}"</div>
+        <div class="ex-search-item-sub">Exchange baru akan ditambahkan</div>
+      </div>
+    </div>`;
+  }
+
+  if (!html) {
+    html = `<div style="text-align:center;padding:16px;color:var(--muted);font-family:var(--mono);font-size:11px">
+      Ketik nama exchange...
+    </div>`;
+  }
+
+  box.innerHTML = html;
+}
+
+function pickExFromSearch(ex) {
+  const sym = exSearchTarget;
+  closeExSearch();
+  if (!sym) return;
+
+  const exU = ex.toUpperCase();
+  if (!allExchanges.includes(exU)) allExchanges.push(exU);
+  if (!coinSources[sym]) coinSources[sym] = [];
+  if (!coinSources[sym].includes(exU)) coinSources[sym].push(exU);
+
+  saveAll(); renderList();
 }
 
 
@@ -2039,8 +2228,7 @@ function renderList() {
             <div class="detail-inner">
               ${srcRows}
               <div class="new-src-box">
-                <input type="text" id="new-src-input-${s}" class="new-src-input" placeholder="Source Baru (exchange)..." onkeypress="if(event.key==='Enter') addCustomSource('${s}')">
-                <button class="new-src-btn" onclick="addCustomSource('${s}')">+</button>
+                <button class="new-src-btn" style="flex:1;padding:9px 14px;font-size:13px;font-family:var(--sans);font-weight:600" onclick="openExSearch('${s}')">+ Tambah ke Exchange</button>
               </div>
             </div>
           </div>
@@ -2065,6 +2253,8 @@ function switchTab(tab) {
   ['tab-ex','tab-ex-d'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.toggle('active', tab==='exchange'); });
   ['tab-coin','tab-coin-d'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.toggle('active', tab==='coin'); });
   expandedItem = null;
+  const label = tab === 'exchange' ? '+ Tambah Exchange' : '+ Tambah Coin';
+  ['global-add-btn-desk','global-add-btn-mob'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = label; });
   renderList();
 }
 
@@ -2084,16 +2274,32 @@ function updateSettings(src) {
 }
 
 function handleGlobalAdd() {
-  const isDesktop = window.innerWidth >= 700;
   if (currentTab === 'coin') {
     openCoinSearch('global');
     return;
   }
-  const input = document.getElementById(isDesktop ? 'add-input-desk' : 'global-add-input');
-  const v = input.value.trim().toUpperCase();
-  if(!v) return;
-  if(!allExchanges.includes(v)) { allExchanges.push(v); saveAll(); input.value = ''; renderList(); }
-  else showToast(`Exchange ${v} sudah ada!`);
+  const overlay = document.getElementById('modal-overlay');
+  const inp = document.getElementById('modal-input');
+  document.getElementById('modal-title').innerText = '+ TAMBAH EXCHANGE';
+  inp.style.display = 'block';
+  inp.type = 'text';
+  inp.value = '';
+  inp.placeholder = 'Nama Exchange...';
+  inp.style.textTransform = 'uppercase';
+  document.getElementById('modal-btns').innerHTML = `
+    <button class="modal-btn mb-ok" id="btn-addex-ok">TAMBAH</button>
+    <button class="modal-btn mb-cancel" onclick="closeModal();document.getElementById('modal-input').style.textTransform=''">BATAL</button>`;
+  document.getElementById('btn-addex-ok').onclick = () => {
+    const v = inp.value.trim().toUpperCase();
+    inp.style.textTransform = '';
+    if (!v) return;
+    closeModal();
+    if (!allExchanges.includes(v)) { allExchanges.push(v); saveAll(); renderList(); }
+    else showToast(`Exchange ${v} sudah ada!`);
+  };
+  inp.onkeypress = e => { if (e.key === 'Enter') document.getElementById('btn-addex-ok')?.click(); };
+  overlay.classList.add('active');
+  setTimeout(() => inp.focus(), 200);
 }
 
 function updateBal(s, src, type, v) {
