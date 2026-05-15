@@ -42,12 +42,14 @@
       overscroll-behavior: none;
     }
 
+    /* ── LAYOUT ── */
     .app-shell {
       display: flex;
       flex-direction: column;
       min-height: 100vh;
     }
 
+    /* STICKY TOP BAR — dimasukkan ke dalam summary-wrap, tidak sticky sendiri */
     .top-bar {
       background: transparent;
       padding: 10px 16px 4px;
@@ -78,6 +80,7 @@
       white-space: nowrap;
     }
 
+    /* STICKY BLOCK UTAMA — mencakup top-bar + summary + controls */
     .summary-wrap {
       position: sticky;
       top: 0;
@@ -145,6 +148,7 @@
       padding: 3px 8px;
     }
 
+    /* CONTROLS in sticky area */
     .controls-wrap {
       padding: 0 16px 10px;
       background: rgba(10,10,15,0.95);
@@ -220,6 +224,7 @@
       appearance: none;
     }
 
+    /* MAIN LIST */
     #main-list {
       padding: 6px 16px 20px;
       display: flex;
@@ -227,6 +232,7 @@
       gap: 6px;
     }
 
+    /* ITEM ROW */
     .item-wrap {
       border-radius: 14px;
       overflow: hidden;
@@ -312,6 +318,7 @@
       margin-top: 2px;
     }
 
+    /* EXPAND DETAIL */
     .item-detail {
       overflow: hidden;
       max-height: 0;
@@ -328,6 +335,7 @@
 
     .detail-inner { padding: 10px 14px 12px; }
 
+    /* SOURCE ROW inside detail */
     .source-row {
       display: flex;
       align-items: center;
@@ -368,6 +376,7 @@
       max-width: 56px;
     }
 
+    /* Mobile: source row jadi 2 baris - label di atas, input di bawah */
     @media (max-width: 699px) {
       .source-row {
         flex-wrap: wrap;
@@ -398,6 +407,7 @@
       }
     }
 
+    /* Desktop: nama tidak terpotong, max-width lebih besar */
     @media (min-width: 700px) {
       .src-label-txt {
         max-width: 120px;
@@ -429,6 +439,7 @@
       outline: none;
       text-align: right;
       transition: border-color 0.2s;
+      /* DISABLE scroll wheel change on number inputs */
       -moz-appearance: textfield;
     }
     .src-input::-webkit-inner-spin-button,
@@ -486,6 +497,7 @@
     }
     .new-src-btn:hover { background: rgba(124,106,247,0.3); }
 
+    /* BOTTOM BAR */
     .bottom-bar {
       position: sticky;
       bottom: 0;
@@ -589,7 +601,21 @@
     .bk-btn-sync { color: var(--green) !important; border-color: rgba(34,211,160,0.35) !important; background: rgba(34,211,160,0.06) !important; }
     .bk-btn-sync:hover { background: rgba(34,211,160,0.14) !important; }
     .bk-btn-sync:disabled { opacity: 0.5; cursor: not-allowed; }
+    .sync-status {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      min-height: 14px;
+      width: 100%;
+      transition: color 0.3s;
+      padding: 2px 0;
+    }
+    .sync-status.ok { color: var(--green); }
+    .sync-status.err { color: var(--red); }
+    .sync-status.loading { color: var(--accent); }
 
+    /* MODAL */
     .modal-overlay {
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.85);
@@ -656,6 +682,7 @@
     .mb-edit { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--muted); }
     .mb-cancel { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--muted); }
 
+    /* TOAST */
     #toast {
       position: fixed;
       bottom: 100px;
@@ -678,6 +705,7 @@
       transform: translateX(-50%) translateY(0);
     }
 
+    /* DESKTOP / LANDSCAPE */
     @media (min-width: 700px) {
       :root { --sidebar-w: 420px; }
 
@@ -686,6 +714,7 @@
         min-height: 100vh;
       }
 
+      /* Left sidebar */
       .sidebar {
         width: var(--sidebar-w);
         flex-shrink: 0;
@@ -731,6 +760,7 @@
         margin-bottom: -6px;
       }
 
+      /* Summary card desktop — lebih besar, lebih web */
       .sidebar .summary-card {
         flex-direction: column;
         align-items: flex-start;
@@ -749,6 +779,7 @@
       .sidebar .summary-usd { font-size: 13px; }
       .sidebar .summary-label { font-size: 10px; letter-spacing: 0.16em; }
 
+      /* Stats mini row di bawah summary */
       .sidebar-stats {
         display: flex;
         gap: 6px;
@@ -824,6 +855,7 @@
 
       .sidebar .tab-row { margin-bottom: 0; }
 
+      /* FIX: filter input lebar sesuai sidebar */
       .sidebar .filter-input {
         margin-bottom: 0;
         width: 100%;
@@ -848,6 +880,7 @@
         gap: 6px;
       }
 
+      /* Sync tombol di desktop — satu baris */
       .sidebar .sync-pair-desk {
         display: flex;
         gap: 6px;
@@ -857,10 +890,12 @@
       .sidebar .add-row { flex-direction: column; gap: 8px; }
       .sidebar .add-main-btn { padding: 11px; font-size: 14px; }
 
+      /* Hide mobile sticky elements */
       .top-bar { display: none; }
       .summary-wrap { display: none; }
       .bottom-bar { display: none; }
 
+      /* Main content */
       .main-content {
         flex: 1;
         overflow-y: auto;
@@ -870,6 +905,7 @@
       .main-content::-webkit-scrollbar { width: 5px; }
       .main-content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 4px; }
 
+      /* Header di main content desktop */
       .desktop-header {
         display: flex;
         align-items: center;
@@ -895,6 +931,7 @@
         padding: 4px 10px;
       }
 
+      /* Desktop: nama item tidak terpotong */
       .item-name {
         white-space: normal;
         overflow: visible;
@@ -916,6 +953,7 @@
       .main-content { width: 100%; }
     }
 
+    /* EMPTY STATE */
     .empty-state {
       text-align: center;
       padding: 50px 20px;
@@ -930,7 +968,7 @@
       font-size: 12px;
       letter-spacing: 0.08em;
     }
-
+    /* COIN SEARCH MODAL */
     .coin-search-overlay {
       display: none;
       position: fixed;
@@ -1032,7 +1070,7 @@
       font-family: var(--mono);
       font-size: 12px;
     }
-
+    /* EXCHANGE SEARCH MODAL */
     .ex-search-overlay {
       display: none;
       position: fixed;
@@ -1131,10 +1169,14 @@
       transition: border-color 0.2s, color 0.2s;
     }
     .ex-search-cancel:hover { border-color: var(--bh); color: var(--text); }
+
+    /* ADD EXCHANGE MODAL - simple input */
+    .add-ex-modal { gap: 14px; }
   </style>
 </head>
 <body>
 
+<!-- MODAL -->
 <div id="modal-overlay" class="modal-overlay" onclick="closeModal()">
   <div class="modal-box" onclick="event.stopPropagation()">
     <div id="modal-title" class="modal-title"></div>
@@ -1143,6 +1185,7 @@
   </div>
 </div>
 
+<!-- COIN SEARCH MODAL -->
 <div id="coin-search-overlay" class="coin-search-overlay" onclick="closeCoinSearch()">
   <div class="coin-search-box" onclick="event.stopPropagation()">
     <div class="coin-search-title" id="coin-search-title">Tambah Koin</div>
@@ -1154,6 +1197,7 @@
   </div>
 </div>
 
+<!-- EXCHANGE SEARCH MODAL (untuk tambah source di coin expand) -->
 <div id="ex-search-overlay" class="ex-search-overlay" onclick="closeExSearch()">
   <div class="ex-search-box" onclick="event.stopPropagation()">
     <div class="ex-search-title">Tambah ke Exchange</div>
@@ -1170,12 +1214,14 @@
 
 <div class="app-shell">
 
+  <!-- ═══════ SIDEBAR (desktop only) ═══════ -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <span>PORTO</span>
       <div id="kurs-live-desk" class="kurs-badge">USD/IDR: ...</div>
     </div>
 
+    <!-- summary -->
     <div class="summary-card">
       <div class="summary-left">
         <div class="summary-label">Total Saldo</div>
@@ -1187,6 +1233,7 @@
       </div>
     </div>
 
+    <!-- stats mini: 3 top gainers -->
     <div class="sidebar-stats-label">🔥 Top Gainer</div>
     <div class="sidebar-stats" id="sidebar-top-gainers">
       <div class="stat-box"><div class="stat-label">-</div><div class="stat-val">-</div></div>
@@ -1194,13 +1241,16 @@
       <div class="stat-box"><div class="stat-label">-</div><div class="stat-val">-</div></div>
     </div>
 
+    <!-- tabs -->
     <div class="tab-row">
       <button id="tab-ex-d" class="tab-btn active" onclick="switchTab('exchange')">Exchange</button>
       <button id="tab-coin-d" class="tab-btn" onclick="switchTab('coin')">Coin</button>
     </div>
 
+    <!-- filter -->
     <input type="text" class="filter-input" id="filter-desk" placeholder="Cari..." oninput="renderList()">
 
+    <!-- sort -->
     <div class="sort-row">
       <select id="sort-order-desk" class="ctrl-select" onchange="updateSettings('desk')">
         <option value="manual">Urutan: Default</option>
@@ -1214,10 +1264,12 @@
       </select>
     </div>
 
+    <!-- add — satu tombol dinamis -->
     <div class="add-row">
       <button class="add-main-btn" style="width:100%;padding:11px" id="global-add-btn-desk" onclick="handleGlobalAdd()">+ Tambah Exchange</button>
     </div>
 
+    <!-- backup -->
     <div class="backup-area">
       <div class="sync-pair-desk">
         <button class="bk-btn bk-btn-sync" onclick="syncPushWithPin()">☁️ Simpan ke Cloud</button>
@@ -1232,13 +1284,16 @@
     </div>
   </aside>
 
+  <!-- ═══════ MAIN CONTENT ═══════ -->
   <div class="main-content">
 
+    <!-- MOBILE: Top Bar -->
     <div class="top-bar">
       <div class="brand">PORT<span>O</span></div>
       <div id="kurs-live" class="kurs-badge">USD/IDR: ...</div>
     </div>
 
+    <!-- MOBILE: Sticky Summary + Controls (satu block sticky) -->
     <div class="summary-wrap">
       <div class="summary-card">
         <div class="summary-left">
@@ -1250,6 +1305,7 @@
           <div id="asset-count-badge" class="asset-count">0 aset</div>
         </div>
       </div>
+      <!-- Controls langsung di dalam sticky block yang sama -->
       <div class="controls-wrap">
         <div class="tab-row">
           <button id="tab-ex" class="tab-btn active" onclick="switchTab('exchange')">Exchange</button>
@@ -1273,8 +1329,10 @@
       </div>
     </div>
 
+    <!-- LIST -->
     <div id="main-list"></div>
 
+    <!-- MOBILE: Bottom Bar -->
     <div class="bottom-bar">
       <div class="add-row">
         <button class="add-main-btn" style="width:100%;padding:11px" id="global-add-btn-mob" onclick="handleGlobalAdd()">+ Tambah Exchange</button>
@@ -1293,15 +1351,15 @@
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- /main-content -->
+</div><!-- /app-shell -->
 
 <script>
 // ══════════════════════════════
 //  COIN SEARCH MODAL
 // ══════════════════════════════
 let cgList = [];
-let coinSearchTarget = null;
+let coinSearchTarget = null; // { type: 'global' | 'exchange', exchange: 'BINANCE' }
 
 function logoSrcs(sym) {
   const s = sym.toLowerCase();
@@ -1328,6 +1386,7 @@ function closeCoinSearch() {
 }
 
 async function loadCGList() {
+  // Cek cache dulu, kalau masih fresh (< 24 jam) pakai cache
   try {
     const cached = localStorage.getItem('cg_coin_list');
     const cachedTs = parseInt(localStorage.getItem('cg_coin_list_ts') || '0');
@@ -1351,6 +1410,7 @@ async function loadCGList() {
     } catch(e) {}
     filterCoinSearch();
   } catch {
+    // Kalau gagal tapi ada cache lama, tetap pakai
     try {
       const cached = localStorage.getItem('cg_coin_list');
       if (cached) {
@@ -1389,10 +1449,11 @@ function filterCoinSearch() {
     return;
   }
 
+  // "sudah ada" hanya kalau koin sudah ada DI EXCHANGE TARGET, bukan di watchlist global
   const targetEx = coinSearchTarget?.exchange;
   const alreadyInTarget = targetEx
     ? new Set(watchlist.filter(s => coinSources[s]?.includes(targetEx)))
-    : new Set(watchlist);
+    : new Set(watchlist); // kalau global, semua koin di watchlist sudah ada
 
   box.innerHTML = hits.map(c => {
     const symU = c.symbol.toUpperCase();
@@ -1415,6 +1476,7 @@ function filterCoinSearch() {
 
 function pickCoinFromSearch(id, name, sym) {
   const symU = sym.toUpperCase();
+  // Simpan target SEBELUM closeCoinSearch() karena closeCoinSearch set coinSearchTarget = null
   const target = coinSearchTarget;
   closeCoinSearch();
 
@@ -1428,6 +1490,7 @@ function pickCoinFromSearch(id, name, sym) {
     const ex = target.exchange;
     if (!coinSources[symU].includes(ex)) coinSources[symU].push(ex);
     if (!allExchanges.includes(ex)) allExchanges.push(ex);
+    // Pastikan exchange tetap ter-expand setelah renderList
     expandedItem = ex;
   }
 
@@ -1437,7 +1500,7 @@ function pickCoinFromSearch(id, name, sym) {
 // ══════════════════════════════
 //  EXCHANGE SEARCH MODAL
 // ══════════════════════════════
-let exSearchTarget = null;
+let exSearchTarget = null; // sym koin yang mau ditambahin source-nya
 
 function openExSearch(sym) {
   exSearchTarget = sym;
@@ -1457,7 +1520,10 @@ function filterExSearch() {
   const box = document.getElementById('ex-search-results');
   const sym = exSearchTarget;
 
+  // Exchange yang sudah jadi source di koin ini
   const alreadySource = new Set(coinSources[sym] || []);
+
+  // Filter dari allExchanges
   const matched = allExchanges.filter(ex => !alreadySource.has(ex) && (q === '' || ex.includes(q)));
 
   let html = matched.map(ex => {
@@ -1475,6 +1541,7 @@ function filterExSearch() {
     </div>`;
   }).join('');
 
+  // Opsi buat baru kalau ada teks dan belum ada yang exact match
   if (q && !allExchanges.includes(q) && !alreadySource.has(q)) {
     html += `<div class="ex-search-item new-entry" onclick="pickExFromSearch('${q}')">
       <div class="ex-search-item-logo"><span class="ex-search-item-logo-txt">+</span></div>
@@ -1520,6 +1587,7 @@ function setSyncStatus(msg, type) {
   });
 }
 
+// Simpan ke cloud — pakai PIN
 function syncPushWithPin() {
   const overlay = document.getElementById('modal-overlay');
   const inp = document.getElementById('modal-input');
@@ -1546,6 +1614,7 @@ function syncPushWithPin() {
   setTimeout(() => inp.focus(), 200);
 }
 
+// Ambil dari cloud — pakai confirm peringatan
 function syncPullWithConfirm() {
   const overlay = document.getElementById('modal-overlay');
   const inp = document.getElementById('modal-input');
@@ -1672,7 +1741,7 @@ function openExcelPopup() {
 }
 
 // ══════════════════════════════
-//  SCROLL
+//  SCROLL — hide backup on scroll down
 // ══════════════════════════════
 let lastScrollY = 0;
 window.addEventListener('scroll', () => {
@@ -1793,6 +1862,7 @@ async function fetchKurs() {
 }
 
 async function fetchCoinMap() {
+  // Cek cache dulu, kalau masih fresh (< 24 jam) pakai cache
   try {
     const cached = localStorage.getItem('cg_coin_map');
     const cachedTs = parseInt(localStorage.getItem('cg_coin_map_ts') || '0');
@@ -1812,6 +1882,7 @@ async function fetchCoinMap() {
       localStorage.setItem('cg_coin_map_ts', Date.now().toString());
     } catch(e) {}
   } catch(e) {
+    // Gagal fetch, pakai cache lama walau expired
     try {
       const cached = localStorage.getItem('cg_coin_map');
       if (cached) Object.assign(coinMapCG, JSON.parse(cached));
@@ -1819,100 +1890,43 @@ async function fetchCoinMap() {
   }
 }
 
-// ══════════════════════════════
-//  FETCH ALL PRICES — FIXED
-//  Bug lama: .replace('USDT','') — replace string biasa,
-//  bisa salah potong di tengah nama koin (misal DOTUSDT → DODT)
-//  Fix: pakai regex /USDT$/ — hanya potong di akhir string
-// ══════════════════════════════
 async function fetchAll() {
-  if(isFetching) return;
-  isFetching = true;
-
-  const STABLES = new Set(['IDR','USDT','USDC','USD','BUSD','DAI','FDUSD']);
-
-  // Set stablecoins langsung
-  watchlist.forEach(s => {
-    if(STABLES.has(s)) {
-      if(s === 'IDR') { prices[s] = 1/usdToIdr; changes[s] = '0.00'; }
-      else { prices[s] = 1; changes[s] = '0.00'; }
-    }
-  });
-
-  let rem = watchlist.filter(s => !STABLES.has(s));
-
-  // ── 1. Bybit batch (semua ticker sekaligus) ──
+  if(isFetching) return; isFetching = true;
+  let rem = watchlist.filter(s => !['IDR','USDT','USDC','USD','BUSD'].includes(s));
   try {
     const res = await fetch('https://api.bybit.com/v5/market/tickers?category=spot');
     const data = await res.json();
     if(data.result?.list) {
       data.result.list.forEach(item => {
-        // FIX: pakai /USDT$/ bukan 'USDT' — agar tidak salah potong simbol
-        if(!item.symbol.endsWith('USDT')) return;
-        const sym = item.symbol.replace(/USDT$/, '');
-        if(rem.includes(sym)) {
-          prices[sym] = parseFloat(item.lastPrice);
-          changes[sym] = (parseFloat(item.price24hPcnt) * 100).toFixed(2);
-          rem = rem.filter(c => c !== sym);
-        }
+        let sym = item.symbol.replace('USDT','');
+        if(rem.includes(sym)) { prices[sym] = parseFloat(item.lastPrice); changes[sym] = (parseFloat(item.price24hPcnt)*100).toFixed(2); rem = rem.filter(c => c !== sym); }
       });
     }
   } catch(e) {}
-
-  // ── 2. Binance batch (semua ticker sekaligus) ──
   if(rem.length > 0) {
     try {
       const res = await fetch('https://api.binance.com/api/v3/ticker/24hr');
       const data = await res.json();
       data.forEach(item => {
-        // FIX: sama, pakai /USDT$/ bukan 'USDT'
-        if(!item.symbol.endsWith('USDT')) return;
-        const sym = item.symbol.replace(/USDT$/, '');
-        if(rem.includes(sym)) {
-          prices[sym] = parseFloat(item.lastPrice);
-          changes[sym] = parseFloat(item.priceChangePercent).toFixed(2);
-          rem = rem.filter(c => c !== sym);
-        }
+        let sym = item.symbol.replace('USDT','');
+        if(rem.includes(sym)) { prices[sym] = parseFloat(item.lastPrice); changes[sym] = parseFloat(item.priceChangePercent).toFixed(2); rem = rem.filter(c => c !== sym); }
       });
     } catch(e) {}
   }
-
-  // ── 3. CoinGecko fallback satu per satu ──
-  if(rem.length > 0) {
-    // Coba batch dulu
-    const ids = rem.map(s => coinMapCG[s]).filter(Boolean);
-    if(ids.length > 0) {
+  for (const s of rem) {
+    if(coinMapCG[s]) {
       try {
-        const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=usd&include_24hr_change=true`);
+        const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinMapCG[s]}&vs_currencies=usd&include_24hr_change=true`);
         const d = await r.json();
-        rem.forEach(s => {
-          const cgId = coinMapCG[s];
-          if(cgId && d[cgId]) {
-            prices[s] = d[cgId].usd;
-            changes[s] = d[cgId].usd_24h_change ? d[cgId].usd_24h_change.toFixed(2) : '0.00';
-            rem = rem.filter(c => c !== s);
-          }
-        });
+        if(d[coinMapCG[s]]) { prices[s] = d[coinMapCG[s]].usd; changes[s] = d[coinMapCG[s]].usd_24h_change ? d[coinMapCG[s]].usd_24h_change.toFixed(2) : '0.00'; }
       } catch(e) {}
     }
-
-    // Sisa yang masih belum dapat harga, coba satu per satu
-    for (const s of rem) {
-      if(coinMapCG[s]) {
-        try {
-          const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinMapCG[s]}&vs_currencies=usd&include_24hr_change=true`);
-          const d = await r.json();
-          if(d[coinMapCG[s]]) {
-            prices[s] = d[coinMapCG[s]].usd;
-            changes[s] = d[coinMapCG[s]].usd_24h_change ? d[coinMapCG[s]].usd_24h_change.toFixed(2) : '0.00';
-          }
-        } catch(e) {}
-      }
-      // Kalau masih belum ada harga, set 0 supaya tidak undefined
-      if(!prices[s]) { prices[s] = 0; changes[s] = '0.00'; }
-    }
   }
-
+  watchlist.forEach(s => {
+    if(s === 'IDR') { prices[s] = 1/usdToIdr; changes[s] = '0.00'; }
+    else if(['USDT','USDC','USD','BUSD'].includes(s)) { prices[s] = 1; changes[s] = '0.00'; }
+    else if(!prices[s]) { prices[s] = 0; changes[s] = '0.00'; }
+  });
   updatePricesOnly();
   isFetching = false;
 }
@@ -1986,6 +2000,7 @@ function updatePricesOnly() {
       const el = document.getElementById(`val-ex-${ex}`);
       if(el) el.innerText = cur === 'IDR' ? fmtIDR(exUsd*usdToIdr) : fmtUSD(exUsd);
 
+      // update per-coin estimates inside expand
       watchlist.forEach(sym => {
         if(coinSources[sym]?.includes(ex)) {
           const est = document.getElementById(`est-${ex}-${sym}`);
@@ -2012,6 +2027,7 @@ function updatePricesOnly() {
         elChange.innerText = `${parseFloat(c)>=0?'+':''}${c}%`;
         elChange.className = `change-badge ${parseFloat(c)>=0?'up':'down'}`;
       }
+      // per-source estimates in coin tab
       (coinSources[sym]||[]).forEach(src => {
         const est = document.getElementById(`est-coin-${sym}-${src}`);
         if(est) {
@@ -2029,6 +2045,7 @@ function updatePricesOnly() {
   ['total-all-idr','total-idr-desk'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = idrTotal; });
   ['total-all-usd','total-usd-desk'].forEach(id => { const el = document.getElementById(id); if(el) el.innerText = usdTotal; });
 
+  // asset count badge
   const cnt = currentTab === 'exchange' ? allExchanges.length : watchlist.length;
   const label = currentTab === 'exchange' ? 'exchange' : 'aset';
   ['asset-count-badge', 'asset-count-badge-desk'].forEach(id => {
@@ -2036,6 +2053,7 @@ function updatePricesOnly() {
     if(el) el.innerText = `${cnt} ${label}`;
   });
 
+  // stat boxes desktop — 3 top gainers dengan icon + harga + persentase
   const gainersEl = document.getElementById('sidebar-top-gainers');
   if (gainersEl) {
     const ranked = watchlist
@@ -2063,12 +2081,13 @@ function updatePricesOnly() {
 }
 
 // ══════════════════════════════
-//  EXPAND / COLLAPSE
+//  EXPAND / COLLAPSE (smooth)
 // ══════════════════════════════
 function toggleDetail(id) {
   const target = document.getElementById(`det-${id}`);
   if(!target) return;
 
+  // close previous
   if(expandedItem && expandedItem !== id) {
     const old = document.getElementById(`det-${expandedItem}`);
     if(old) { old.classList.remove('open'); document.getElementById(`wrap-${expandedItem}`)?.classList.remove('expanded'); }
@@ -2083,6 +2102,7 @@ function toggleDetail(id) {
     target.classList.add('open');
     wrap?.classList.add('expanded');
     expandedItem = id;
+    // update estimates right away
     setTimeout(updatePricesOnly, 50);
   }
 }
@@ -2271,6 +2291,7 @@ function renderList() {
   list.innerHTML = html;
   updatePricesOnly();
 
+  // Disable scroll-wheel on all number inputs
   list.querySelectorAll('input[type=number]').forEach(inp => {
     inp.addEventListener('wheel', e => e.preventDefault(), { passive: false });
   });
@@ -2339,6 +2360,28 @@ function updateBal(s, src, type, v) {
   balances[s][src][type] = v;
   saveAll();
   updatePricesOnly();
+}
+
+function addCoinToExchange(ex) {
+  const input = document.getElementById(`add-coin-to-${ex}`);
+  const s = input.value.toUpperCase().trim();
+  if(s) {
+    if(!watchlist.includes(s)) { watchlist.push(s); coinSources[s] = []; }
+    if(!coinSources[s].includes(ex)) { coinSources[s].push(ex); saveAll(); input.value = ''; renderList(); fetchAll(); }
+    else showToast('Koin sudah ada!');
+  }
+}
+
+function addCustomSource(s) {
+  const input = document.getElementById(`new-src-input-${s}`);
+  const v = input.value.trim().toUpperCase();
+  if(v) {
+    if(!coinSources[s].includes(v)) {
+      coinSources[s].push(v);
+      if(!allExchanges.includes(v)) allExchanges.push(v);
+      saveAll(); renderList();
+    } else showToast('Source sudah ada!');
+  }
 }
 
 function removeCoinFromExchange(s, ex) { coinSources[s] = coinSources[s].filter(i => i !== ex); saveAll(); renderList(); }
@@ -2415,6 +2458,7 @@ function renameProcess(oldVal, newVal, type) {
   }
 }
 
+// HOLD (long press)
 function startHold(event, id, type) {
   const touch = event.touches ? event.touches[0] : event;
   startX = touch.clientX; startY = touch.clientY;
