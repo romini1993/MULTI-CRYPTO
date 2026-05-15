@@ -1624,7 +1624,7 @@ function syncPullWithConfirm() {
     <div style="width:100%;text-align:center;font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">
       Data lokal akan diganti dengan data dari cloud.<br>Pastikan data cloud sudah tersimpan dengan benar.
     </div>
-    <button class="modal-btn mb-ok" id="btn-pull-ok">AMBIL SEKARANG</button>
+    <button class="modal-btn mb-ok" id="btn-pull-ok">AMBIL</button>
     <button class="modal-btn mb-cancel" onclick="closeModal()">BATAL</button>`;
   document.getElementById('btn-pull-ok').onclick = () => { closeModal(); syncPull(); };
   overlay.classList.add('active');
