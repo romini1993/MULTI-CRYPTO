@@ -1744,13 +1744,27 @@ function openExcelPopup() {
 //  SCROLL — hide backup on scroll down
 // ══════════════════════════════
 let lastScrollY = 0;
+let scrollTicking = false;
 window.addEventListener('scroll', () => {
-  const cur = window.scrollY;
-  const br = document.getElementById('backup-row');
-  if (!br) return;
-  if (cur > lastScrollY && cur > 40) br.classList.add('hidden');
-  else if (cur < lastScrollY) br.classList.remove('hidden');
-  lastScrollY = cur;
+  if (scrollTicking) return;
+  scrollTicking = true;
+  requestAnimationFrame(() => {
+    const cur = window.scrollY;
+    const br = document.getElementById('backup-row');
+    if (br) {
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const nearBottom = maxScroll - cur < 60;
+      if (nearBottom) {
+        // jangan toggle apapun di ujung bawah
+      } else if (cur > lastScrollY && cur > 40) {
+        br.classList.add('hidden');
+      } else if (cur < lastScrollY) {
+        br.classList.remove('hidden');
+      }
+    }
+    lastScrollY = cur;
+    scrollTicking = false;
+  });
 }, { passive: true });
 
 // ══════════════════════════════
@@ -1760,10 +1774,16 @@ function handleLogoError(img, sym) {
   if (sym === 'IDR') { img.parentElement.innerHTML = `<div class="logo-initial" style="color:#22d3a0">RP</div>`; return; }
   const retry = parseInt(img.getAttribute('data-retry') || '0');
   const s = sym.toLowerCase();
+  const cgId = coinMapCG[sym] || s;
   const sources = [
+    // existing (prioritas)
     `https://gate.io/images/coin_icon/64/${s}.png`,
     `https://assets.coincap.io/assets/icons/${s}@2x.png`,
-    `https://static.okx.com/cdn/oksupport/asset/currency/icon/${s}.png`
+    `https://static.okx.com/cdn/oksupport/asset/currency/icon/${s}.png`,
+    // tambahan fallback
+    `https://assets.coingecko.com/coins/images/1/small/${cgId}.png`,
+    `https://coinicons-api.vercel.app/api/icon/${s}`,
+    `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/color/${s}.png`
   ];
   if (retry < sources.length) { img.setAttribute('data-retry', retry + 1); img.src = sources[retry]; }
   else { img.parentElement.innerHTML = `<div class="logo-initial">${sym.substring(0,2)}</div>`; }
@@ -1914,12 +1934,22 @@ async function fetchAll() {
       });
     } catch(e) {}
   }
-  for (const s of rem) {
-    if(coinMapCG[s]) {
+  // Fallback batch CoinGecko untuk yang masih belum ketemu
+  if (rem.length > 0) {
+    const cgIds = rem.filter(s => coinMapCG[s]).map(s => coinMapCG[s]);
+    if (cgIds.length > 0) {
       try {
-        const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinMapCG[s]}&vs_currencies=usd&include_24hr_change=true`);
+        const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${cgIds.join(',')}&vs_currencies=usd&include_24hr_change=true`);
         const d = await r.json();
-        if(d[coinMapCG[s]]) { prices[s] = d[coinMapCG[s]].usd; changes[s] = d[coinMapCG[s]].usd_24h_change ? d[coinMapCG[s]].usd_24h_change.toFixed(2) : '0.00'; }
+        rem = rem.filter(s => {
+          const id = coinMapCG[s];
+          if (id && d[id]) {
+            prices[s] = d[id].usd;
+            changes[s] = d[id].usd_24h_change ? d[id].usd_24h_change.toFixed(2) : '0.00';
+            return false; // sudah dapat
+          }
+          return true; // masih belum
+        });
       } catch(e) {}
     }
   }
